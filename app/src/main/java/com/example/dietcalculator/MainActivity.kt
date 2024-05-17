@@ -86,6 +86,14 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
     }
 
     override fun errorRaised(connector: IDatabaseConnector, exception: Throwable) {
-        TODO("Not yet implemented")
+        Toast.makeText(this,exception.message, Toast.LENGTH_LONG).show()
+    }
+
+    override fun foodAdded(connector: IDatabaseConnector, food: Food) {
+        Toast.makeText(this,food.toString() + " added to database", Toast.LENGTH_LONG).show()
+    }
+
+    override fun dbDeleted(connector: IDatabaseConnector) {
+        Toast.makeText(this,"database deleted successfully", Toast.LENGTH_LONG).show()
     }
 }

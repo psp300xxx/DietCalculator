@@ -3,23 +3,25 @@ package com.example.dietcalculator.dao
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
+import com.example.dietcalculator.dbentities.DbUtility
 import com.example.dietcalculator.dbentities.FoodDB
 import com.example.dietcalculator.dbentities.FoodReaderDbHelper
 import com.example.dietcalculator.model.Food
 import com.example.dietcalculator.model.FoodRelation
+import java.util.function.Consumer
 
 class SQLLiteConnector() : IDatabaseConnector {
 
     var database: SQLiteDatabase? = null
     var delegates: List<IDatabaseDelegate>? = null
+    var dbHelper: FoodReaderDbHelper? = null
 
     override fun connect(context: Context) {
-        val dbHelper = FoodReaderDbHelper(context, false)
-        database = dbHelper.writableDatabase
-        if (this.delegates!=null){
-            for( delegate in this.delegates!! ){
-                delegate.dbConnectedSuccessfully(this)
-            }
+        dbHelper = FoodReaderDbHelper(context, false)
+        database = dbHelper?.writableDatabase
+        notifyDelegates {
+            del ->
+            del.dbConnectedSuccessfully(this)
         }
     }
 
@@ -30,8 +32,31 @@ class SQLLiteConnector() : IDatabaseConnector {
         this.delegates = this.delegates!! + delegate
     }
 
+    private fun notifyDelegates( operation: Consumer<IDatabaseDelegate>){
+        if (this.delegates!=null){
+            for( delegate in this.delegates!! ){
+                operation.accept(delegate)
+            }
+        }
+    }
+
     override fun deleteDatabase() {
-        TODO("Not yet implemented")
+        var exception: Throwable? = null
+        try {
+            DbUtility.deleteDatabase(database!!)
+        }catch (e: Throwable){
+            exception = e
+        }finally {
+            notifyDelegates {
+                delegate ->
+                if(exception==null){
+                    delegate.dbDeleted(this)
+                }
+                else {
+                    delegate.errorRaised(this, exception)
+                }
+            }
+        }
     }
 
     override fun getRelationEntriesFoodInput(list: List<Food>) {
@@ -80,15 +105,29 @@ class SQLLiteConnector() : IDatabaseConnector {
             }
         }
         cursor.close()
-        if(delegates != null){
-            for(delegate in this.delegates!!){
-                delegate.foodDataRetrieved(this, result)
-            }
+        notifyDelegates {
+            delegate -> delegate.foodDataRetrieved(this, result)
         }
     }
 
     override fun addFood(food: Food) {
-        TODO("Not yet implemented")
+        var exception: Throwable? = null
+        try{
+            DbUtility.addFood(this.database!!, food)
+        }catch (e: Throwable){
+            exception = e
+        }
+        finally {
+            notifyDelegates {
+                del ->
+                if (exception == null){
+                    del.foodAdded(this, food)
+                }
+                else {
+                    del.errorRaised(this, exception)
+                }
+            }
+        }
     }
 
     override fun addFoodRelation(foodRelation: FoodRelation) {

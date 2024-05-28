@@ -1,26 +1,18 @@
 package com.example.dietcalculator
 
-import android.content.ContentValues
-import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
-import com.example.dietcalculator.controller.ISubstitutionCalculator
-import com.example.dietcalculator.controller.SubstituteCalculatorImpl
+import androidx.fragment.app.Fragment
 import com.example.dietcalculator.dao.IDatabaseConnector
 import com.example.dietcalculator.dao.IDatabaseDelegate
 import com.example.dietcalculator.dao.SQLLiteConnector
 import com.example.dietcalculator.databinding.ActivityMainBinding
-import com.example.dietcalculator.dbentities.DbUtility
-import com.example.dietcalculator.dbentities.FoodDB
-import com.example.dietcalculator.dbentities.FoodReaderDbHelper
 import com.example.dietcalculator.model.Food
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
@@ -30,6 +22,7 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var dbConnector: IDatabaseConnector
+    private lateinit var substituteCalculatorFragment: SubstituteCalculatorFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,9 +30,11 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
         setContentView(R.layout.activity_main)
         val navigationView = this.findViewById<BottomNavigationView>(R.id.nav_view)
         navigationView.setOnItemSelectedListener { item -> this.onOptionsItemSelected(item) }
+        substituteCalculatorFragment = SubstituteCalculatorFragment()
         dbConnector = SQLLiteConnector()
         dbConnector.addDelegate(this)
         dbConnector.connect(this.baseContext)
+//        setCurrentFragment(firstFragment)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -48,13 +43,18 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
         return true
     }
 
+    private fun setCurrentFragment(fragment: Fragment)=
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.nav_view, fragment)
+            commit()
+        }
+
     // Handling the click events of the menu items
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Switching on the item id of the menu item
         when (item.itemId) {
             R.id.substitute_tab_button -> {
-                // Code to be executed when the add button is clicked
-                Toast.makeText(this, "Menu "+item.title+" is Pressed", Toast.LENGTH_SHORT).show()
+                this.setCurrentFragment(substituteCalculatorFragment)
                 return true
             }
             R.id.settings_tab_button -> {

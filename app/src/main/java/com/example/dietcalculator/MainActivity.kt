@@ -12,6 +12,8 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import com.example.dietcalculator.controller.ISubstitutionCalculator
+import com.example.dietcalculator.controller.SubstituteCalculatorImpl
 import com.example.dietcalculator.dao.IDatabaseConnector
 import com.example.dietcalculator.dao.IDatabaseDelegate
 import com.example.dietcalculator.dao.SQLLiteConnector
@@ -20,30 +22,21 @@ import com.example.dietcalculator.dbentities.DbUtility
 import com.example.dietcalculator.dbentities.FoodDB
 import com.example.dietcalculator.dbentities.FoodReaderDbHelper
 import com.example.dietcalculator.model.Food
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
 class MainActivity : AppCompatActivity(), IDatabaseDelegate {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private lateinit var database: SQLiteDatabase
     private lateinit var dbConnector: IDatabaseConnector
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        setSupportActionBar(binding.toolbar)
-
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-
-        binding.fab.setOnClickListener { view ->
-            this.dbConnector.getFoodEntries()
-        }
+        setContentView(R.layout.activity_main)
+        val navigationView = this.findViewById<BottomNavigationView>(R.id.nav_view)
+        navigationView.setOnItemSelectedListener { item -> this.onOptionsItemSelected(item) }
         dbConnector = SQLLiteConnector()
         dbConnector.addDelegate(this)
         dbConnector.connect(this.baseContext)
@@ -51,20 +44,33 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        dbConnector.getFoodEntries()
+        menuInflater.inflate(R.menu.navigation_menu, menu)
         return true
     }
 
+    // Handling the click events of the menu items
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+        // Switching on the item id of the menu item
+        when (item.itemId) {
+            R.id.substitute_tab_button -> {
+                // Code to be executed when the add button is clicked
+                Toast.makeText(this, "Menu "+item.title+" is Pressed", Toast.LENGTH_SHORT).show()
+                return true
+            }
+            R.id.settings_tab_button -> {
+                // Code to be executed when the add button is clicked
+                Toast.makeText(this, "Menu "+item.title+" is Pressed", Toast.LENGTH_SHORT).show()
+                return true
+            }
+            R.id.food_view_tab_button -> {
+                // Code to be executed when the add button is clicked
+                Toast.makeText(this, "Menu "+item.title+" is Pressed", Toast.LENGTH_SHORT).show()
+                return true
+            }
         }
+        return true
     }
+
 
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)

@@ -11,7 +11,7 @@ interface ITree<T> {
     fun getParent(): ITree<T>?
 
     fun getRoot(): ITree<T> {
-        if( getParent()==null ){
+        if( !hasParent() ){
             return this
         }
         return getParent()!!.getRoot()
@@ -34,6 +34,15 @@ interface ITree<T> {
             node = node.getParent()
         }
         return result
+    }
+
+    fun visitLeafToRoot( consumer: Consumer<T> ){
+        var result = listOf<T>()
+        var node : ITree<T>? = this
+        while( node !=null ){
+            consumer.accept(node.getValue())
+            node = node.getParent()
+        }
     }
 
     fun hasParent(): Boolean {

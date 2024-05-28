@@ -8,10 +8,6 @@ import java.util.stream.Collectors
 
 object SubstituteCalculatorImpl : ISubstitutionCalculator {
 
-    private fun isFoodInRelation(foodName: String, relation: FoodRelation): Boolean{
-        return relation.foodOne==foodName || relation.foodTwo==foodName
-    }
-
     private fun existsDirectRelation(foodOne: String, foodTwo: String, relations: List<FoodRelation>): FoodRelation? {
         for (relation in relations){
             if ( relation.areFoodInRelation(foodOne, foodTwo) ){
@@ -51,7 +47,7 @@ object SubstituteCalculatorImpl : ISubstitutionCalculator {
     }
 
 
-    private fun buildGraph(source: Food, target: Food, relations: List<FoodRelation>): List<FoodRelation>? {
+    private fun buildTree(source: Food, target: Food, relations: List<FoodRelation>): List<FoodRelation>? {
         val sourceRelations = relations.filter { rel -> rel.isFoodInRelation(source.name) }
         var result: ITree<FoodRelation>? = null
         for( relation in sourceRelations ){
@@ -59,8 +55,6 @@ object SubstituteCalculatorImpl : ISubstitutionCalculator {
             val root: ITree<FoodRelation> = TreeImpl<FoodRelation>( sourceRelation )
             result = computeTree(root, sourceRelation.foodTwo, target.name, relations)
         }
-        var all_rel = listOf<FoodRelation>()
-        result?.getRoot()?.visitTree({ value -> all_rel = all_rel + value })
         return if( result!=null ) result.leafToRootValues() else null
     }
 
@@ -75,7 +69,7 @@ object SubstituteCalculatorImpl : ISubstitutionCalculator {
             val ratio = directRelation.getRatioFor(foodOriginal.name)
             return originalQuantityGr * ratio
         }
-        var relationsDetected = buildGraph(foodOriginal, foodReplace, relations)
+        var relationsDetected = buildTree(foodOriginal, foodReplace, relations)
         if (relationsDetected==null){
             throw NoFoodRelationException()
         }

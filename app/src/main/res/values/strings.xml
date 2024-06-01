@@ -14,6 +14,8 @@
     <string name="menu_navigation">Navigation</string>
     <string name="source_food_text_view">Source Food</string>
     <string name="destination_food_text_view">Destination Food</string>
+    <string name="mode_switch_dietist">Dietist Mode</string>
+    <string name="mode_switch_isocaloric">Isocaloric Mode</string>
     <string name="lorem_ipsum">meme\n</string>
 
 </resources>

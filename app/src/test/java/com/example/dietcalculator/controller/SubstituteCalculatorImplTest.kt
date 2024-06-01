@@ -1,5 +1,7 @@
 package com.example.dietcalculator.controller
 
+import com.example.dietcalculator.controller.CalculatorUtility.createFood
+import com.example.dietcalculator.controller.CalculatorUtility.createRelation
 import com.example.dietcalculator.model.Food
 import com.example.dietcalculator.model.FoodRelation
 import org.junit.Assert
@@ -16,13 +18,6 @@ class SubstituteCalculatorImplTest {
         calculator = SubstituteCalculatorImpl
     }
 
-    private fun createFood(name: String, calories: Double): Food {
-        return Food(name = name, kcal = calories, protein = 0.0, carbo = 0.0, fat = 0.0, alcol = 0.0, salt = 0.0)
-    }
-
-    private fun createRelation(source: String, target: String, ratio: Double): FoodRelation{
-        return FoodRelation(foodOne = source, foodTwo = target, ratio= ratio)
-    }
 
     @Test
     fun isCalculatorInitialised(){

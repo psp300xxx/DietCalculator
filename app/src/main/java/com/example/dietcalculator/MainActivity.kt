@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
     private lateinit var binding: ActivityMainBinding
     private lateinit var dbConnector: IDatabaseConnector
     private lateinit var substituteCalculatorFragment: SubstituteCalculatorFragment
+    private lateinit var secondFragment: SecondFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,10 +32,11 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
         val navigationView = this.findViewById<BottomNavigationView>(R.id.nav_view)
         navigationView.setOnItemSelectedListener { item -> this.onOptionsItemSelected(item) }
         substituteCalculatorFragment = SubstituteCalculatorFragment()
+        secondFragment = SecondFragment()
         dbConnector = SQLLiteConnector()
         dbConnector.addDelegate(this)
         dbConnector.connect(this.baseContext)
-//        setCurrentFragment(firstFragment)
+        setCurrentFragment(substituteCalculatorFragment)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -64,7 +66,7 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
             }
             R.id.food_view_tab_button -> {
                 // Code to be executed when the add button is clicked
-                Toast.makeText(this, "Menu "+item.title+" is Pressed", Toast.LENGTH_SHORT).show()
+                this.setCurrentFragment(secondFragment)
                 return true
             }
         }

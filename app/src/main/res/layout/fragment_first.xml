@@ -4,63 +4,78 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/first_frag"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context=".SubstituteCalculatorFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="729dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
         android:padding="16dp"
         tools:layout_editor_absoluteY="1dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="16dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginStart="0dp"
+            android:layout_marginBottom="0dp"
+            android:weightSum="100"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
 
+            <Switch
+                android:id="@+id/mode_switch"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="10"
+                android:text="@string/mode_switch_dietist" />
+
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="40"
+                android:weightSum="100"
                 android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/source_food_text_view"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="90"
                     android:gravity="center"
                     android:text="@string/source_food_text_view"
                     android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="180"
                     android:layout_marginTop="50dp"
                     android:layout_marginBottom="50dp"
+                    android:weightSum="100"
                     android:orientation="horizontal">
 
                     <TextView
                         android:id="@+id/sourceFoodTextView"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_weight="40"
                         android:text="TextView" />
 
                     <EditText
                         android:id="@+id/sourceFoodQuantity"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_weight="25"
                         android:ems="10"
                         android:inputType="numberDecimal" />
 
                     <Button
                         android:id="@+id/sourceDestinationFood"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_weight="35"
                         android:layout_height="wrap_content"
                         android:text="@string/menu_search" />
 
@@ -69,7 +84,8 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="40"
                 android:orientation="vertical">
 
                 <TextView
@@ -86,29 +102,31 @@
                     android:layout_height="match_parent"
                     android:layout_marginTop="50dp"
                     android:layout_weight="1"
+                    android:weightSum="100"
                     android:orientation="horizontal">
 
                     <TextView
                         android:id="@+id/destinationFoodTextView"
-                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_width="0dp"
+                        android:layout_weight="40"
                         android:text="TextView" />
 
                     <EditText
                         android:id="@+id/destinationFoodQuantity"
-                        android:layout_width="wrap_content"
                         android:layout_height="match_parent"
+                        android:layout_width="0dp"
                         android:layout_marginBottom="0dp"
-                        android:layout_weight="1"
                         android:ems="10"
+                        android:layout_weight="25"
                         android:enabled="false"
                         android:inputType="numberDecimal" />
 
                     <Button
                         android:id="@+id/searchDestinationFood"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="35"
                         android:text="@string/menu_search" />
                 </LinearLayout>
             </LinearLayout>
@@ -118,7 +136,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
-                android:layout_weight="1"
+                android:layout_weight="10"
                 android:text="@string/convert_food_button_text" />
 
         </LinearLayout>

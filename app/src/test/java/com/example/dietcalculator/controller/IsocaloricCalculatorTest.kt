@@ -31,7 +31,7 @@ class IsocaloricCalculatorTest {
         val two = CalculatorUtility.createFood("two", 50.0)
         val result = calculator.compute(one, two, 100.0, Collections.emptyList())
         val EXPECTED_RESULT = 200.0
-        Assert.assertTrue( CalculatorUtility.closeDouble(EXPECTED_RESULT, result) )
+        Assert.assertEquals(EXPECTED_RESULT, result, CalculatorUtility.DEFAULT_EPSILON)
     }
 
     @Test
@@ -39,7 +39,7 @@ class IsocaloricCalculatorTest {
         val one  = CalculatorUtility.createFood("one", 100.0)
         val two = CalculatorUtility.createFood("two", 0.0)
         val result = calculator.compute(one, two, 100.0, Collections.emptyList())
-        Assert.assertEquals(Double.POSITIVE_INFINITY, result,0.0)
+        Assert.assertEquals(Double.POSITIVE_INFINITY, result,CalculatorUtility.DEFAULT_EPSILON)
     }
 
 

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Assertions.*
 
 class SubstituteCalculatorImplTest {
 
-    var calculator: ISubstitutionCalculator? = null
+    lateinit var calculator: ISubstitutionCalculator
 
     @Before
     fun setup(){
@@ -29,9 +29,9 @@ class SubstituteCalculatorImplTest {
         var foodOne = createFood("one", 100.0)
         var foodTwo = createFood("two", 120.0)
         var relations = arrayListOf( createRelation(foodOne.name, foodTwo.name, 2.0) )
-        val result = calculator?.compute(foodOne, foodTwo, 50.0, relations)
+        val result = calculator.compute(foodOne, foodTwo, 50.0, relations)
         val EXPECTED_RESULT = 100.0
-        Assert.assertEquals(EXPECTED_RESULT, result)
+        Assert.assertEquals(EXPECTED_RESULT, result, CalculatorUtility.DEFAULT_EPSILON)
     }
 
     @Test
@@ -40,9 +40,9 @@ class SubstituteCalculatorImplTest {
         var foodTwo = createFood("two", 120.0)
         var foodBridge = createFood("bridge", 150.0)
         var relations = arrayListOf( createRelation(foodOne.name, foodBridge.name, 2.0), createRelation(foodBridge.name, foodTwo.name, 1.5) )
-        val result = calculator?.compute(foodOne, foodTwo, 50.0, relations)
+        val result = calculator.compute(foodOne, foodTwo, 50.0, relations)
         val EXPECTED_RESULT = 150.0
-        Assert.assertEquals(EXPECTED_RESULT, result)
+        Assert.assertEquals(EXPECTED_RESULT, result, CalculatorUtility.DEFAULT_EPSILON)
     }
 
     @Test
@@ -54,9 +54,9 @@ class SubstituteCalculatorImplTest {
         var foodBridge3 = createFood("bridge3", 150.0)
         var relations = arrayListOf( createRelation(foodOne.name, foodBridge1.name, 2.0), createRelation(foodBridge1.name, foodBridge2.name, 2.0),
             createRelation(foodBridge2.name, foodBridge3.name, 2.0), createRelation(foodBridge3.name, foodTwo.name, 2.0))
-        val result = calculator?.compute(foodOne, foodTwo, 50.0, relations)
+        val result = calculator.compute(foodOne, foodTwo, 50.0, relations)
         val EXPECTED_RESULT = 800.0
-        Assert.assertEquals(EXPECTED_RESULT, result)
+        Assert.assertEquals(EXPECTED_RESULT, result, CalculatorUtility.DEFAULT_EPSILON)
     }
 
 }

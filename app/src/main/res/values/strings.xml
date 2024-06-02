@@ -16,6 +16,8 @@
     <string name="destination_food_text_view">Destination Food</string>
     <string name="mode_switch_dietist">Dietist Mode</string>
     <string name="mode_switch_isocaloric">Isocaloric Mode</string>
+    <string name="no_food_warning">There are no food to be shown, please add something</string>
+    <string name="generic_error">An Error unexpectedly happened</string>
     <string name="lorem_ipsum">meme\n</string>
 
 </resources>

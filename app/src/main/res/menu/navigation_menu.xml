@@ -3,18 +3,17 @@
 
     <item
         android:id="@+id/substitute_tab_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:title="@string/menu_substitution" />
     <item
         android:id="@+id/food_view_tab_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:title="@string/menu_food_view" />
     <item
         android:id="@+id/settings_tab_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:icon="@drawable/ic_settings_foreground_foreground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:title="@string/menu_settings" />
 </menu>

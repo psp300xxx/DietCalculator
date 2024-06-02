@@ -10,20 +10,21 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.dietcalculator.dao.IDatabaseConnector
-import com.example.dietcalculator.dao.IDatabaseDelegate
-import com.example.dietcalculator.dao.SQLLiteConnector
+import com.example.dietcalculator.dao.mockconnector.MockConnector
+import com.example.dietcalculator.dao.sqliteconnector.SQLLiteConnector
 import com.example.dietcalculator.databinding.ActivityMainBinding
-import com.example.dietcalculator.model.Food
+import com.example.dietcalculator.fragments.FoodListFragment
+import com.example.dietcalculator.fragments.SubstituteCalculatorFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
-class MainActivity : AppCompatActivity(), IDatabaseDelegate {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var dbConnector: IDatabaseConnector
     private lateinit var substituteCalculatorFragment: SubstituteCalculatorFragment
-    private lateinit var secondFragment: SecondFragment
+    private lateinit var foodListFragment: FoodListFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,10 +33,15 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
         val navigationView = this.findViewById<BottomNavigationView>(R.id.nav_view)
         navigationView.setOnItemSelectedListener { item -> this.onOptionsItemSelected(item) }
         substituteCalculatorFragment = SubstituteCalculatorFragment()
-        secondFragment = SecondFragment()
-        dbConnector = SQLLiteConnector()
-        dbConnector.addDelegate(this)
+//        dbConnector = SQLLiteConnector()
+        dbConnector = MockConnector()
+        if (dbConnector is MockConnector){
+            val c = dbConnector as MockConnector
+            c.createFoods(20)
+        }
         dbConnector.connect(this.baseContext)
+        foodListFragment = FoodListFragment(connector = dbConnector)
+        dbConnector.addDelegate(foodListFragment)
         setCurrentFragment(substituteCalculatorFragment)
     }
 
@@ -47,7 +53,7 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
 
     private fun setCurrentFragment(fragment: Fragment)=
         supportFragmentManager.beginTransaction().apply {
-            replace(R.id.nav_view, fragment)
+            replace(R.id.fragmentContainerView, fragment)
             commit()
         }
 
@@ -66,7 +72,7 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
             }
             R.id.food_view_tab_button -> {
                 // Code to be executed when the add button is clicked
-                this.setCurrentFragment(secondFragment)
+                this.setCurrentFragment(foodListFragment)
                 return true
             }
         }
@@ -80,28 +86,6 @@ class MainActivity : AppCompatActivity(), IDatabaseDelegate {
                 || super.onSupportNavigateUp()
     }
 
-    override fun dbConnectedSuccessfully(connector: IDatabaseConnector) {
-        Toast.makeText(this,"Successfully connected to DB", Toast.LENGTH_LONG)
-    }
 
-    override fun foodDataRetrieved(connector: IDatabaseConnector, list: List<Food>) {
-        val sb : StringBuilder = StringBuilder()
-        for ( food in list ){
-            sb.append(food.toString() + ", ")
-        }
-        sb.setLength(sb.length-2)
-        Toast.makeText(this,sb, Toast.LENGTH_LONG).show()
-    }
 
-    override fun errorRaised(connector: IDatabaseConnector, exception: Throwable) {
-        Toast.makeText(this,exception.message, Toast.LENGTH_LONG).show()
-    }
-
-    override fun foodAdded(connector: IDatabaseConnector, food: Food) {
-        Toast.makeText(this,food.toString() + " added to database", Toast.LENGTH_LONG).show()
-    }
-
-    override fun dbDeleted(connector: IDatabaseConnector) {
-        Toast.makeText(this,"database deleted successfully", Toast.LENGTH_LONG).show()
-    }
 }

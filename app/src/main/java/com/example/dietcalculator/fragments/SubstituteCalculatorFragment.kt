@@ -1,4 +1,4 @@
-package com.example.dietcalculator
+package com.example.dietcalculator.fragments
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Switch
 import android.widget.Toast
+import com.example.dietcalculator.R
 import com.example.dietcalculator.controller.ISubstitutionCalculator
 import com.example.dietcalculator.controller.IsocaloricCalculator
 import com.example.dietcalculator.controller.SubstituteCalculatorImpl

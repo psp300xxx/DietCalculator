@@ -1,8 +1,10 @@
-package com.example.dietcalculator.dao
+package com.example.dietcalculator.dao.sqliteconnector
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
+import com.example.dietcalculator.dao.IDatabaseConnector
+import com.example.dietcalculator.dao.IDatabaseDelegate
 import com.example.dietcalculator.dbentities.DbUtility
 import com.example.dietcalculator.dbentities.FoodDB
 import com.example.dietcalculator.dbentities.FoodReaderDbHelper
@@ -12,11 +14,24 @@ import java.util.function.Consumer
 
 class SQLLiteConnector() : IDatabaseConnector {
 
+
     var database: SQLiteDatabase? = null
-    var delegates: List<IDatabaseDelegate>? = null
+    var delegates: MutableList<IDatabaseDelegate>? = null
     var dbHelper: FoodReaderDbHelper? = null
+    private val daemonThread: SQLiteThread = SQLiteThread()
+
+    init {
+        this.daemonThread.start()
+    }
 
     override fun connect(context: Context) {
+        val method = this.javaClass.getDeclaredMethod("connectPvt", Context::class.java )
+        val callOp = MethodCall(method, arrayOf(context as Object), this)
+        daemonThread.addOperation(call = callOp)
+    }
+
+
+    private fun connectPvt(context: Context) {
         dbHelper = FoodReaderDbHelper(context, false)
         database = dbHelper?.writableDatabase
         notifyDelegates {
@@ -27,9 +42,12 @@ class SQLLiteConnector() : IDatabaseConnector {
 
     override fun addDelegate(delegate: IDatabaseDelegate) {
         if(this.delegates==null){
-            this.delegates = ArrayList<IDatabaseDelegate>()
+            this.delegates = mutableListOf()
         }
-        this.delegates = this.delegates!! + delegate
+        this.delegates?.let {
+            list ->
+            list.add(delegate)
+        }
     }
 
     private fun notifyDelegates( operation: Consumer<IDatabaseDelegate>){
@@ -41,6 +59,12 @@ class SQLLiteConnector() : IDatabaseConnector {
     }
 
     override fun deleteDatabase() {
+        val method = this.javaClass.getDeclaredMethod("deleteDatabasePvt" )
+        val callOp = MethodCall(method, arrayOf(), this)
+        daemonThread.addOperation(call = callOp)
+    }
+
+    fun deleteDatabasePvt() {
         var exception: Throwable? = null
         try {
             DbUtility.deleteDatabase(database!!)
@@ -72,6 +96,12 @@ class SQLLiteConnector() : IDatabaseConnector {
     }
 
     override fun getFoodEntries() {
+        val method = this.javaClass.getDeclaredMethod("getFoodEntriesPvt" )
+        val callOp = MethodCall(method, arrayOf(), this)
+        daemonThread.addOperation(call = callOp)
+    }
+
+    private fun getFoodEntriesPvt() {
 
         if (this.database==null){
             return
@@ -111,6 +141,12 @@ class SQLLiteConnector() : IDatabaseConnector {
     }
 
     override fun addFood(food: Food) {
+        val method = this.javaClass.getMethod("addFoodPvt", *arrayOf( food::class.java ) )
+        val callOp = MethodCall(method, arrayOf(food as Object), this)
+        daemonThread.addOperation(call = callOp)
+    }
+
+    fun addFoodPvt(food: Food) {
         var exception: Throwable? = null
         try{
             DbUtility.addFood(this.database!!, food)

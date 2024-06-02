@@ -35,10 +35,6 @@ class MainActivity : AppCompatActivity() {
         substituteCalculatorFragment = SubstituteCalculatorFragment()
 //        dbConnector = SQLLiteConnector()
         dbConnector = MockConnector()
-        if (dbConnector is MockConnector){
-            val c = dbConnector as MockConnector
-            c.createFoods(20)
-        }
         dbConnector.connect(this.baseContext)
         foodListFragment = FoodListFragment(connector = dbConnector)
         dbConnector.addDelegate(foodListFragment)

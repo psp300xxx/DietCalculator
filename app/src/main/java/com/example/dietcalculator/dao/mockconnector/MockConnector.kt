@@ -13,6 +13,18 @@ class MockConnector: IDatabaseConnector {
     private var foods :MutableList<Food> = mutableListOf()
     private var foodRelations :MutableList<FoodRelation> = mutableListOf()
 
+    companion object {
+        val DEFAULT_INIT_NUMBER = 20
+    }
+
+    constructor(initNumber: Int){
+        this.createFoods(initNumber)
+    }
+
+    constructor(): this(DEFAULT_INIT_NUMBER){
+
+    }
+
     fun createFoods(number: Int){
         for ( i in 0..number-1 ){
             val foodName = String.format("food%d", i)

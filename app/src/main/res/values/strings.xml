@@ -18,6 +18,9 @@
     <string name="mode_switch_isocaloric">Isocaloric Mode</string>
     <string name="no_food_warning">There are no food to be shown, please add something</string>
     <string name="generic_error">An Error unexpectedly happened</string>
+    <string name="is_vegan_str">Is Vegan Food</string>
+    <string name="is_protein_str">Is Protein Food</string>
+
     <string name="lorem_ipsum">meme\n</string>
 
 </resources>

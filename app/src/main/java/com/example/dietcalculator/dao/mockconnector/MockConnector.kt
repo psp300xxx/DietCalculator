@@ -29,8 +29,12 @@ class MockConnector: IDatabaseConnector {
         for ( i in 0..number-1 ){
             val foodName = String.format("food%d", i)
             this.foods.add(
-                Food(name = foodName, 0.0,0.0,0.0,0.0,0.0,0.0)
+                Food(name = foodName, 20.0,0.0,0.0,0.0,0.0,0.0)
             )
+        }
+        this.delegates.forEach{
+                d ->
+            d.foodDataRetrieved(this, this.foods)
         }
     }
 
@@ -70,6 +74,19 @@ class MockConnector: IDatabaseConnector {
         this.delegates.forEach{
             d ->
             d.dbDeleted(this)
+        }
+    }
+
+    fun foodNumber(): Int {
+        return this.foods.size
+    }
+
+    fun clearDb(){
+        this.foods.clear()
+        this.foodRelations.clear()
+        this.delegates.forEach{
+                d ->
+            d.foodDataRetrieved(this, this.foods)
         }
     }
 

@@ -9,6 +9,7 @@ class Food {
     var carbo: Double
     var alcol: Double
     var salt: Double
+    var isVegan: Boolean
 
     constructor(name: String, kcal: Double, protein: Double, fat: Double, carbo: Double, alcol: Double, salt: Double){
         this.alcol = alcol
@@ -18,6 +19,11 @@ class Food {
         this.protein = protein
         this.kcal = kcal
         this.name = name
+        this.isVegan = false
+    }
+
+    constructor(name: String, kcal: Double, protein: Double, fat: Double, carbo: Double, alcol: Double, salt: Double, isVegan:Boolean): this(name, kcal, protein, fat, carbo, alcol, salt){
+        this.isVegan = isVegan
     }
 
     override fun toString(): String {

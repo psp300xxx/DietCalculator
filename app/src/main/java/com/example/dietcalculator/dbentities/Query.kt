@@ -13,7 +13,8 @@ object Query {
                 "${FoodDB.FoodEntry.COLUMN_CARBO} REAL," +
                 "${FoodDB.FoodEntry.COLUMN_FAT} REAL," +
                 "${FoodDB.FoodEntry.COLUMN_SALT} REAL," +
-                "${FoodDB.FoodEntry.COLUMN_ALCOL} REAL)"
+                "${FoodDB.FoodEntry.COLUMN_ALCOL} REAL," +
+                "${FoodDB.FoodEntry.COLUMN_IS_VEGAN} INTEGER)"
 
     const val SQL_CREATE_FOOD_RELATION_TABLE = "CREATE TABLE ${FoodRelation.FoodRelationEntry.TABLE_NAME} (" +
             "${BaseColumns._ID} INTEGER PRIMARY KEY," +

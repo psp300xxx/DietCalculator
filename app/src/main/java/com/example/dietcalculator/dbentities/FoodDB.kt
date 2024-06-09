@@ -12,5 +12,6 @@ object FoodDB {
         const val COLUMN_FAT = "fat"
         const val COLUMN_ALCOL = "alcol"
         const val COLUMN_SALT = "salt"
+        const val COLUMN_IS_VEGAN = "is_vegan"
     }
 }

@@ -14,6 +14,8 @@ interface IDatabaseConnector {
 
     fun addFood(food: Food)
 
+    fun downloadDataFromInternet()
+
     fun addFoodRelation(foodRelation: FoodRelation)
 
     fun deleteDatabase()

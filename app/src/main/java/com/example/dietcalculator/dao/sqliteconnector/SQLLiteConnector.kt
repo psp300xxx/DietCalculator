@@ -5,20 +5,41 @@ import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
 import com.example.dietcalculator.dao.IDatabaseConnector
 import com.example.dietcalculator.dao.IDatabaseDelegate
+import com.example.dietcalculator.dao.fooddatadownloader.IRemoteFoodDataDownloader
+import com.example.dietcalculator.dao.fooddatadownloader.IRemoteFoodDataDownloaderDelegate
+import com.example.dietcalculator.dao.fooddatadownloader.OpenFoodDataDownloader
 import com.example.dietcalculator.dbentities.DbUtility
 import com.example.dietcalculator.dbentities.FoodDB
 import com.example.dietcalculator.dbentities.FoodReaderDbHelper
+import com.example.dietcalculator.dbentities.FoodSavingException
 import com.example.dietcalculator.model.Food
 import com.example.dietcalculator.model.FoodRelation
+import com.example.dietcalculator.utility.AppConstants
+import com.example.dietcalculator.utility.Utility
+import com.example.dietcalculator.utility.Utility.toBoolean
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import org.json.JSONObject
+import java.io.IOException
+import java.util.Locale
 import java.util.function.Consumer
 
-class SQLLiteConnector() : IDatabaseConnector {
+
+class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate {
 
 
     var database: SQLiteDatabase? = null
     var delegates: MutableList<IDatabaseDelegate>? = null
     var dbHelper: FoodReaderDbHelper? = null
     private val daemonThread: SQLiteThread = SQLiteThread()
+    private val remoteFoodDataDownloader: IRemoteFoodDataDownloader = OpenFoodDataDownloader()
+
+    init {
+        remoteFoodDataDownloader.addDelegate(this)
+    }
 
     init {
         this.daemonThread.start()
@@ -108,7 +129,7 @@ class SQLLiteConnector() : IDatabaseConnector {
         }
         val projection = arrayOf(BaseColumns._ID, FoodDB.FoodEntry.COLUMN_NAME, FoodDB.FoodEntry.COLUMN_CALORIES
         , FoodDB.FoodEntry.COLUMN_PROTEIN, FoodDB.FoodEntry.COLUMN_FAT, FoodDB.FoodEntry.COLUMN_ALCOL
-        ,FoodDB.FoodEntry.COLUMN_SALT, FoodDB.FoodEntry.COLUMN_CARBO)
+        ,FoodDB.FoodEntry.COLUMN_SALT, FoodDB.FoodEntry.COLUMN_CARBO, FoodDB.FoodEntry.COLUMN_IS_VEGAN)
         val cursor = database!!.query(
             FoodDB.FoodEntry.TABLE_NAME,   // The table to query
             projection,             // The array of columns to return (pass null to get all)
@@ -129,8 +150,9 @@ class SQLLiteConnector() : IDatabaseConnector {
                 val carbo = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_CARBO))
                 val salt = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_SALT))
                 val alcol = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_ALCOL))
+                val isVegan = cursor.getInt(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_IS_VEGAN))
                 val food = Food(name = name, carbo = carbo, kcal = kcal, protein = proteins, fat = fat
-                , alcol = alcol, salt = salt)
+                , alcol = alcol, salt = salt, isVegan = isVegan.toBoolean())
                 result.add(food)
             }
         }
@@ -146,28 +168,56 @@ class SQLLiteConnector() : IDatabaseConnector {
         daemonThread.addOperation(call = callOp)
     }
 
+    override fun downloadDataFromInternet() {
+        val method = this.javaClass.getMethod("downloadDataFromInternetPvt" )
+        val callOp = MethodCall(method, arrayOf(), this)
+        daemonThread.addOperation(call = callOp)
+    }
+
+    fun downloadDataFromInternetPvt() {
+        this.remoteFoodDataDownloader.downloadFoodData()
+    }
+
     fun addFoodPvt(food: Food) {
         var exception: Throwable? = null
         try{
             DbUtility.addFood(this.database!!, food)
+            delegates?.forEach{
+                it.foodAdded(this, food)
+            }
         }catch (e: Throwable){
-            exception = e
-        }
-        finally {
-            notifyDelegates {
-                del ->
-                if (exception == null){
-                    del.foodAdded(this, food)
-                }
-                else {
-                    del.errorRaised(this, exception)
-                }
+            delegates?.forEach{
+                it.errorRaised(this, e)
             }
         }
     }
 
     override fun addFoodRelation(foodRelation: FoodRelation) {
         TODO("Not yet implemented")
+    }
+
+    override fun foodDownloaded(downloader: IRemoteFoodDataDownloader, foods: Collection<Food>) {
+        val failedFoodStore = mutableSetOf<String>()
+        for(food in foods){
+            this.database?.let {
+                val result = DbUtility.addFood(it, food)
+                if(result<0){
+                    failedFoodStore.add(food.name)
+                }
+            }
+        }
+        if(!failedFoodStore.isEmpty()){
+            delegates?.forEach {
+                it.errorRaised(this, FoodSavingException(failedFoodStore))
+            }
+        }
+        this.getFoodEntries()
+    }
+
+    override fun errorRaised(downloader: IRemoteFoodDataDownloader, exception: Throwable) {
+        delegates?.forEach{
+            it.errorRaised(this, exception)
+        }
     }
 
 

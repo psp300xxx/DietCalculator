@@ -14,6 +14,7 @@ import com.example.dietcalculator.dao.mockconnector.MockConnector
 import com.example.dietcalculator.dao.sqliteconnector.SQLLiteConnector
 import com.example.dietcalculator.databinding.ActivityMainBinding
 import com.example.dietcalculator.fragments.FoodListFragment
+import com.example.dietcalculator.fragments.SettingsFragment
 import com.example.dietcalculator.fragments.SubstituteCalculatorFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dbConnector: IDatabaseConnector
     private lateinit var substituteCalculatorFragment: SubstituteCalculatorFragment
     private lateinit var foodListFragment: FoodListFragment
+    private lateinit var settingsFragment: SettingsFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,10 +35,11 @@ class MainActivity : AppCompatActivity() {
         val navigationView = this.findViewById<BottomNavigationView>(R.id.nav_view)
         navigationView.setOnItemSelectedListener { item -> this.onOptionsItemSelected(item) }
         substituteCalculatorFragment = SubstituteCalculatorFragment()
-//        dbConnector = SQLLiteConnector()
-        dbConnector = MockConnector()
+        dbConnector = SQLLiteConnector()
+//        dbConnector = MockConnector()
         dbConnector.connect(this.baseContext)
         foodListFragment = FoodListFragment(connector = dbConnector)
+        settingsFragment = SettingsFragment(connector = dbConnector)
         dbConnector.addDelegate(foodListFragment)
         setCurrentFragment(substituteCalculatorFragment)
     }
@@ -63,7 +66,7 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.settings_tab_button -> {
                 // Code to be executed when the add button is clicked
-                Toast.makeText(this, "Menu "+item.title+" is Pressed", Toast.LENGTH_SHORT).show()
+                this.setCurrentFragment(settingsFragment)
                 return true
             }
             R.id.food_view_tab_button -> {

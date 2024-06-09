@@ -60,6 +60,10 @@ class MockConnector: IDatabaseConnector {
         }
     }
 
+    override fun downloadDataFromInternet() {
+
+    }
+
     override fun addFoodRelation(foodRelation: FoodRelation) {
         this.foodRelations.add(foodRelation)
         this.delegates.forEach{

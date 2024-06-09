@@ -28,30 +28,16 @@ import kotlin.random.Random
  */
 class FoodListFragment(private val connector: IDatabaseConnector) : Fragment(), IDatabaseDelegate {
 
-    private var foodFilter : FoodFilter = FoodFilter()
     private var stringCondition: StringCondition = StringCondition()
     private var veganCondition: Predicate<Food> = Predicate { food -> food.isVegan }
     private var proteinCondition: Predicate<Food> = Predicate { food -> ((food.protein*4.0)/food.kcal)>AppConstants.PROTEIN_PERCENTAGE }
 
-    init {
-        foodFilter.addNameCondition(stringCondition)
-    }
 
     private var foodAdapter: FoodAdapter? = null
 
     private var lastFoodList: List<Food>? = null
+    private var filterActiveMap: MutableMap<Predicate<Food>, Boolean> = mutableMapOf()
 
-    companion object {
-        val LAYOUT_WEIGHT: Map<Int, Float>
-
-        init {
-            val map = HashMap<Int, Float>()
-            map.put(R.id.food_list_view, 600.0.toFloat())
-            map.put(R.id.no_food_text_view, 100.0.toFloat())
-            LAYOUT_WEIGHT = map
-        }
-
-    }
 
     fun setStringFoodFilter(s : String?) {
         this.stringCondition.setInputString(s)
@@ -94,33 +80,29 @@ class FoodListFragment(private val connector: IDatabaseConnector) : Fragment(), 
         _binding = FoodListFragmentBinding.inflate(inflater, container, false)
         binding.foodListSearchView.setOnQueryTextListener(QueryTextListener(this))
         binding.placeholderView.showView(R.id.no_food_text_view)
-        binding.isVeganSwitch.setOnCheckedChangeListener{
-            button, value ->
-            if( value ){
-                this.foodFilter.addCondition( veganCondition )
-            }
-            else {
-                this.foodFilter.removeCondition(veganCondition)
-            }
-            this.lastFoodList?.let {
-                this.foodDataRetrieved(this.connector, it)
-            }
-        }
-        binding.isProteinFood.setOnCheckedChangeListener{
-                button, value ->
-            if( value ){
-                this.foodFilter.addCondition( proteinCondition )
-            }
-            else {
-                this.foodFilter.removeCondition(proteinCondition)
-            }
-            this.lastFoodList?.let {
-                this.foodDataRetrieved(this.connector, it)
-            }
-        }
         binding.floatingActionButton.setOnClickListener {
             view ->
             this.addButtonPressedMockConnector()
+        }
+
+        binding.floatingUpdateButton.setOnClickListener{
+            view ->
+            Toast.makeText(this.context, R.string.downloading_msg, Toast.LENGTH_SHORT).show()
+            this.connector.downloadDataFromInternet()
+        }
+        binding.isProteinFood.setOnCheckedChangeListener{
+            b, v ->
+            filterActiveMap[proteinCondition] = v
+            this.lastFoodList?.let {
+                this.foodDataRetrieved(this.connector, it)
+            }
+        }
+        binding.isVeganSwitch.setOnCheckedChangeListener{
+                b, v ->
+            filterActiveMap[veganCondition] = v
+            this.lastFoodList?.let {
+                this.foodDataRetrieved(this.connector, it)
+            }
         }
         return binding.root
     }
@@ -160,9 +142,17 @@ class FoodListFragment(private val connector: IDatabaseConnector) : Fragment(), 
 
     override fun foodDataRetrieved(connector: IDatabaseConnector, list: List<Food>) {
         this.lastFoodList = list
+        val foodFilter = FoodFilter()
+        foodFilter.addNameCondition(stringCondition)
+        if(this.filterActiveMap[veganCondition] == true){
+            foodFilter.addCondition(veganCondition)
+        }
+        if(this.filterActiveMap[proteinCondition] == true){
+            foodFilter.addCondition(proteinCondition)
+        }
         val filteredList = this.lastFoodList?.filter {
             food ->
-            this.foodFilter.isMatching(food)
+            foodFilter.isMatching(food)
         }
         filteredList?.let {
             val hasFoods = !filteredList.isEmpty()
@@ -214,13 +204,6 @@ class FoodListFragment(private val connector: IDatabaseConnector) : Fragment(), 
     }
 }
 
-fun Boolean.toViewProperty(): Int{
-    if (this){
-        return View.VISIBLE
-    }
-    return View.INVISIBLE
-}
-
 fun ViewSwitcher.showView(viewId: Int){
     this.reset()
     var iterator = this.iterator()
@@ -233,10 +216,9 @@ fun ViewSwitcher.showView(viewId: Int){
         }
     }
     targetView?.let {
-        if( this.nextView == targetView ){
+        while( this.nextView != targetView ){
             this.showNext()
-        }else{
-            this.showPrevious()
         }
+        this.showNext()
     }
 }

@@ -1,4 +1,4 @@
-package com.example.dietcalculator
+package com.example.dietcalculator.fragments
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -6,11 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
-import androidx.recyclerview.widget.ListAdapter
+import com.example.dietcalculator.R
 import com.example.dietcalculator.dao.IDatabaseConnector
-import com.example.dietcalculator.model.Food
 
 class SettingsListAdapter(private val context: Context, private val connector:IDatabaseConnector): BaseAdapter() {
     override fun getCount(): Int {

@@ -5,9 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.dietcalculator.SettingsListAdapter
 import com.example.dietcalculator.dao.IDatabaseConnector
-import com.example.dietcalculator.databinding.FoodListFragmentBinding
 import com.example.dietcalculator.databinding.SettingsFragmentBinding
 
 class SettingsFragment(private val connector: IDatabaseConnector): Fragment() {

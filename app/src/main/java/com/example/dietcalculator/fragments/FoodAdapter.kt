@@ -1,4 +1,4 @@
-package com.example.dietcalculator
+package com.example.dietcalculator.fragments
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
+import com.example.dietcalculator.R
 import com.example.dietcalculator.model.Food
 
 class FoodAdapter(private val list: List<Food>, private val context: Context): BaseAdapter() {

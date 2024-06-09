@@ -5,12 +5,10 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.SearchView
 import android.widget.Toast
 import android.widget.ViewSwitcher
 import androidx.core.view.iterator
-import com.example.dietcalculator.FoodAdapter
 import com.example.dietcalculator.R
 import com.example.dietcalculator.dao.IDatabaseConnector
 import com.example.dietcalculator.dao.IDatabaseDelegate
@@ -19,7 +17,6 @@ import com.example.dietcalculator.databinding.FoodListFragmentBinding
 import com.example.dietcalculator.model.Food
 import com.example.dietcalculator.model.FoodRelation
 import com.example.dietcalculator.utility.AppConstants
-import java.util.Collections
 import java.util.function.Predicate
 import kotlin.random.Random
 

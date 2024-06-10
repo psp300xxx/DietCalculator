@@ -32,10 +32,11 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
 
 
     var database: SQLiteDatabase? = null
-    var delegates: MutableList<IDatabaseDelegate>? = null
+    var delegates: MutableSet<IDatabaseDelegate>? = null
     var dbHelper: FoodReaderDbHelper? = null
     private val daemonThread: SQLiteThread = SQLiteThread()
     private val remoteFoodDataDownloader: IRemoteFoodDataDownloader = OpenFoodDataDownloader()
+    private val downloaderThread = DownloaderThread()
 
     init {
         remoteFoodDataDownloader.addDelegate(this)
@@ -43,6 +44,7 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
 
     init {
         this.daemonThread.start()
+        this.downloaderThread.start()
     }
 
     override fun connect(context: Context) {
@@ -63,7 +65,7 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
 
     override fun addDelegate(delegate: IDatabaseDelegate) {
         if(this.delegates==null){
-            this.delegates = mutableListOf()
+            this.delegates = mutableSetOf()
         }
         this.delegates?.let {
             list ->
@@ -77,6 +79,10 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
                 operation.accept(delegate)
             }
         }
+    }
+
+    override fun removeDelegate(delegate: IDatabaseDelegate) {
+        this.delegates?.remove(delegate)
     }
 
     override fun deleteDatabase() {
@@ -112,9 +118,10 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
         TODO("Not yet implemented")
     }
 
-    override fun getRelationEntriesIDinputs(list: List<Integer>) {
+    override fun getRelationEntriesIDinputs(list: List<Int>) {
         TODO("Not yet implemented")
     }
+
 
     override fun getFoodEntries() {
         val method = this.javaClass.getDeclaredMethod("getFoodEntriesPvt" )
@@ -169,19 +176,16 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
     }
 
     override fun downloadDataFromInternet() {
-        val method = this.javaClass.getMethod("downloadDataFromInternetPvt" )
-        val callOp = MethodCall(method, arrayOf(), this)
-        daemonThread.addOperation(call = callOp)
+        downloaderThread.triggerDownload(this.remoteFoodDataDownloader)
     }
 
-    fun downloadDataFromInternetPvt() {
-        this.remoteFoodDataDownloader.downloadFoodData()
-    }
 
     fun addFoodPvt(food: Food) {
         var exception: Throwable? = null
         try{
-            DbUtility.addFood(this.database!!, food)
+            this.database?.let {
+                DbUtility.addRow(it, food)
+            }
             delegates?.forEach{
                 it.foodAdded(this, food)
             }
@@ -200,9 +204,14 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
         val failedFoodStore = mutableSetOf<String>()
         for(food in foods){
             this.database?.let {
-                val result = DbUtility.addFood(it, food)
+                val result = DbUtility.addRow(it, food)
                 if(result<0){
                     failedFoodStore.add(food.name)
+                }
+                else{
+                    delegates?.forEach {
+                        it.foodAdded(this, food)
+                    }
                 }
             }
         }

@@ -1,15 +1,41 @@
 package com.example.dietcalculator.model
 
-class Food {
+import com.example.dietcalculator.dbentities.DbEntity
+import com.example.dietcalculator.dbentities.FoodDB
 
+class Food: DbEntity {
+
+    @DBValue(columnName = FoodDB.FoodEntry.COLUMN_NAME)
     var name: String
+        public get
+
+    @DBValue(columnName=FoodDB.FoodEntry.COLUMN_CALORIES)
     var kcal: Double
+        public get
+
+    @DBValue(columnName=FoodDB.FoodEntry.COLUMN_PROTEIN)
     var protein: Double
+        public get
+
+    @DBValue(columnName=FoodDB.FoodEntry.COLUMN_FAT)
     var fat: Double
+        public get
+
+    @DBValue(columnName=FoodDB.FoodEntry.COLUMN_CARBO)
     var carbo: Double
+        public get
+
+    @DBValue(columnName=FoodDB.FoodEntry.COLUMN_ALCOL)
     var alcol: Double
+        public get
+
+    @DBValue(columnName=FoodDB.FoodEntry.COLUMN_SALT)
     var salt: Double
+        public get
+
+    @DBValue(columnName=FoodDB.FoodEntry.COLUMN_IS_VEGAN)
     var isVegan: Boolean
+        public get
 
     constructor(name: String, kcal: Double, protein: Double, fat: Double, carbo: Double, alcol: Double, salt: Double){
         this.alcol = alcol
@@ -28,6 +54,10 @@ class Food {
 
     override fun toString(): String {
         return "Food(name='$name', kcal=$kcal, protein=$protein, fat=$fat, carbo=$carbo, alcol=$alcol, salt=$salt)"
+    }
+
+    override fun tableName(): String {
+        return FoodDB.FoodEntry.TABLE_NAME
     }
 
 

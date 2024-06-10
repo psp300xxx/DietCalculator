@@ -1,6 +1,7 @@
 package com.example.dietcalculator.fragments
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -63,6 +64,12 @@ class FoodListFragment(private val connector: IDatabaseConnector) : Fragment(), 
 
     }
 
+    override fun onPause() {
+        super.onPause()
+        this.connector.removeDelegate(this)
+    }
+
+
     private var _binding: FoodListFragmentBinding? = null
 
     // This property is only valid between onCreateView and
@@ -116,7 +123,8 @@ class FoodListFragment(private val connector: IDatabaseConnector) : Fragment(), 
 
     override fun onResume() {
         super.onResume()
-        connector.getFoodEntries()
+        this.connector.addDelegate(this)
+        this.connector.getFoodEntries()
     }
 
     fun addButtonPressedMockConnector(){
@@ -186,6 +194,7 @@ class FoodListFragment(private val connector: IDatabaseConnector) : Fragment(), 
         TODO("Not yet implemented")
     }
 
+
     override fun filteredFoodRelationsRetrieved(
         connector: IDatabaseConnector,
         relations: List<FoodRelation>,
@@ -198,6 +207,7 @@ class FoodListFragment(private val connector: IDatabaseConnector) : Fragment(), 
         this.activity?.runOnUiThread{
             Toast.makeText(this.context, R.string.generic_error, Toast.LENGTH_LONG).show()
         }
+        Log.w(AppConstants.APP_LOG_TAG, exception)
     }
 }
 

@@ -4,6 +4,8 @@ object AppConstants {
 
     val PROTEIN_PERCENTAGE = 0.15
 
+    val APP_LOG_TAG = "DietCalculator"
+
 
     val OPEN_FOOD_FACTS_ENDPOINT_TEMPLATE = "https://world.openfoodfacts.org/country/%s.json?page=%d&page_size=%d"
 

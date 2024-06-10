@@ -1,6 +1,8 @@
 package com.example.dietcalculator.model
 
-class FoodRelation(val foodOne: String, val foodTwo: String, val ratio: Double) {
+import com.example.dietcalculator.dbentities.DbEntity
+
+class FoodRelation(val foodOne: String, val foodTwo: String, val ratio: Double): DbEntity {
 
     private var oppositeRelation: FoodRelation? = null
 
@@ -41,6 +43,10 @@ class FoodRelation(val foodOne: String, val foodTwo: String, val ratio: Double) 
 
     fun areFoodInRelation( foodOne: String, foodTwo: String ): Boolean{
         return isFoodInRelation(foodOne) && isFoodInRelation(foodTwo)
+    }
+
+    override fun tableName(): String {
+        return com.example.dietcalculator.dbentities.FoodRelation.FoodRelationEntry.TABLE_NAME
     }
 
 }

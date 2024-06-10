@@ -45,6 +45,10 @@ class MockConnector: IDatabaseConnector {
         this.delegates.add(delegate)
     }
 
+    override fun removeDelegate(delegate: IDatabaseDelegate) {
+        TODO("Not yet implemented")
+    }
+
     override fun getFoodEntries() {
         this.delegates.forEach{
             d ->
@@ -119,10 +123,11 @@ class MockConnector: IDatabaseConnector {
         getRelationEntriesFoodInput(foods)
     }
 
-    override fun getRelationEntriesIDinputs(list: List<Integer>) {
+    override fun getRelationEntriesIDinputs(list: List<Int>) {
         this.delegates.forEach{
-            d ->
+                d ->
             d.allFoodRelationsRetrieved(this, Collections.unmodifiableList(this.foodRelations))
         }
     }
+
 }

@@ -10,6 +10,8 @@ interface IDatabaseConnector {
 
     fun addDelegate(delegate: IDatabaseDelegate)
 
+    fun removeDelegate(delegate: IDatabaseDelegate)
+
     fun getFoodEntries()
 
     fun addFood(food: Food)
@@ -24,7 +26,7 @@ interface IDatabaseConnector {
 
     fun getRelationEntriesNameInputs(list: List<String>)
 
-    fun getRelationEntriesIDinputs(list: List<Integer>)
+    fun getRelationEntriesIDinputs(list: List<Int>)
 
 
 }

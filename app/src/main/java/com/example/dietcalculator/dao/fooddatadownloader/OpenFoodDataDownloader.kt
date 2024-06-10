@@ -1,5 +1,6 @@
 package com.example.dietcalculator.dao.fooddatadownloader
 
+import android.util.Log
 import com.example.dietcalculator.model.Food
 import com.example.dietcalculator.utility.AppConstants
 import com.example.dietcalculator.utility.Utility
@@ -10,17 +11,36 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Collections
 import java.util.Locale
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 class OpenFoodDataDownloader: IRemoteFoodDataDownloader {
 
-    private val client = OkHttpClient()
+    private val client: OkHttpClient
+
+    private val isWorking = AtomicBoolean(false)
+
     private val delegates : MutableList<IRemoteFoodDataDownloaderDelegate> = mutableListOf()
+
+    init {
+        val builder = OkHttpClient.Builder()
+        client = builder.connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build()
+    }
     override fun downloadFoodData(n: Int, chunckSize: Int) {
-        val countryCode = Locale.getDefault().getDisplayCountry(Locale.US)
-        val country = Utility.formatCountryName(countryCode)
-        val requestBuilder = Request.Builder().addHeader("User-Agent", "Android")
-        val foodsForRequest = Math.max(chunckSize, 100)
-        this.executeRequests(country, foodsForRequest, requestBuilder, n)
+        if(this.isWorking.get()){
+            Log.w(AppConstants.APP_LOG_TAG, "Already downloading, it is useless to start again")
+            return
+        }
+        try{
+            this.isWorking.set(true)
+            val countryCode = Locale.getDefault().getDisplayCountry(Locale.US)
+            val country = Utility.formatCountryName(countryCode)
+            val requestBuilder = Request.Builder().addHeader("User-Agent", "Android")
+            val foodsForRequest = if( chunckSize<100 ) chunckSize else 100
+            this.executeRequests(country, foodsForRequest, requestBuilder, n)
+        }finally {
+            isWorking.set(false)
+        }
     }
 
     private fun executeRequests(country: String,pageSize: Int, requestBuilder: Request.Builder, numberFood: Int){
@@ -79,7 +99,7 @@ class OpenFoodDataDownloader: IRemoteFoodDataDownloader {
                 foodNames.add(productName)
                 result.add(food)
             }catch (e: Exception){
-                println()
+                Log.w(AppConstants.APP_LOG_TAG, e)
             }
         }
         return result

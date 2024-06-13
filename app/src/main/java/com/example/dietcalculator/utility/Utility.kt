@@ -10,7 +10,7 @@ object Utility {
     }
 
     fun jsonArrayToFoodList(jsonArray: JSONArray): List<Food>{
-        return mutableListOf()
+        TODO()
     }
 
     inline fun <T : Any, R : Any> letIfAllNotNull(vararg arguments: T?, block: (List<Any>) -> R): R? {

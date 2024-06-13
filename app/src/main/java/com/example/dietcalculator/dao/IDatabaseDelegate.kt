@@ -7,11 +7,15 @@ interface IDatabaseDelegate {
 
     fun dbConnectedSuccessfully(connector: IDatabaseConnector)
 
-    fun foodDataRetrieved(connector: IDatabaseConnector, list: List<Food>)
+    fun onFoodDataRetrievingCompleted(connector: IDatabaseConnector, number:Int)
 
-    fun foodAdded(connector: IDatabaseConnector, food: Food)
+    fun onFoodItemRetrieved(connector: IDatabaseConnector, food: Food)
+
+    fun onFoodAddedToDb(connector: IDatabaseConnector, food: Food, downloaded: Int? = null, toDownload: Int? = null)
 
     fun dbDeleted(connector: IDatabaseConnector)
+
+    fun onDBRecreated(connector: IDatabaseConnector)
 
     fun foodRelationAdded(connector: IDatabaseConnector, foodRelation: FoodRelation)
 

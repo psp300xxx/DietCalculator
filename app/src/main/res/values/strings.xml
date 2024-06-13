@@ -13,6 +13,8 @@
     <string name="convert_food_button_text">Convert</string>
     <string name="downloading_msg">Downloading data...</string>
     <string name="downloading_data_text">Download Data</string>
+    <string name="download_complete_text">Download Completed</string>
+    <string name="download_partially_text">Download Partially Completed</string>
     <string name="downloading_data_text_button">Download</string>
     <string name="menu_navigation">Navigation</string>
     <string name="source_food_text_view">Source Food</string>

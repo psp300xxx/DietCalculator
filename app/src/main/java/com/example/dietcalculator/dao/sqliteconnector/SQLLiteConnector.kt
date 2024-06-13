@@ -1,6 +1,7 @@
 package com.example.dietcalculator.dao.sqliteconnector
 
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
 import com.example.dietcalculator.dao.IDatabaseConnector
@@ -25,6 +26,7 @@ import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
 import java.util.Locale
+import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
 
 
@@ -57,8 +59,8 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
     private fun connectPvt(context: Context) {
         dbHelper = FoodReaderDbHelper(context, false)
         database = dbHelper?.writableDatabase
-        notifyDelegates {
-            del ->
+        this.delegates?.forEach{
+                del ->
             del.dbConnectedSuccessfully(this)
         }
     }
@@ -73,39 +75,62 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
         }
     }
 
-    private fun notifyDelegates( operation: Consumer<IDatabaseDelegate>){
-        if (this.delegates!=null){
-            for( delegate in this.delegates!! ){
-                operation.accept(delegate)
-            }
-        }
-    }
-
     override fun removeDelegate(delegate: IDatabaseDelegate) {
         this.delegates?.remove(delegate)
     }
 
-    override fun deleteDatabase() {
+    override fun deleteDatabase(parallelize: Boolean) {
+        if(!parallelize){
+            deleteDatabasePvt()
+            return
+        }
         val method = this.javaClass.getDeclaredMethod("deleteDatabasePvt" )
         val callOp = MethodCall(method, arrayOf(), this)
         daemonThread.addOperation(call = callOp)
     }
 
-    fun deleteDatabasePvt() {
-        var exception: Throwable? = null
+    override fun recreateDb(parallelize: Boolean){
+        if(parallelize){
+            val method = this.javaClass.getDeclaredMethod("recreateDbPvt", Context::class.java )
+            val callOp = MethodCall(method, arrayOf(), this)
+            daemonThread.addOperation(call = callOp)
+        }
+        else {
+            recreateDbPvt()
+        }
+    }
+
+    private fun recreateDbPvt(){
+        deleteDatabasePvt()
+        createDbTablePvt()
+    }
+
+    private fun createDbTablePvt(){
         try {
-            DbUtility.deleteDatabase(database!!)
+            this.database?.let {
+                DbUtility.createDatabase(it)
+                this.delegates?.forEach{
+                    it.onDBRecreated(this)
+                }
+            }
         }catch (e: Throwable){
-            exception = e
-        }finally {
-            notifyDelegates {
-                delegate ->
-                if(exception==null){
-                    delegate.dbDeleted(this)
+            this.delegates?.forEach{
+                it.errorRaised(this, e)
+            }
+        }
+    }
+
+    fun deleteDatabasePvt() {
+        try {
+            this.database?.let {
+                DbUtility.deleteDatabase(it)
+                this.delegates?.forEach{
+                    it.dbDeleted(this)
                 }
-                else {
-                    delegate.errorRaised(this, exception)
-                }
+            }
+        }catch (e: Throwable){
+            this.delegates?.forEach{
+                it.errorRaised(this, e)
             }
         }
     }
@@ -130,42 +155,53 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
     }
 
     private fun getFoodEntriesPvt() {
-
         if (this.database==null){
             return
         }
-        val projection = arrayOf(BaseColumns._ID, FoodDB.FoodEntry.COLUMN_NAME, FoodDB.FoodEntry.COLUMN_CALORIES
-        , FoodDB.FoodEntry.COLUMN_PROTEIN, FoodDB.FoodEntry.COLUMN_FAT, FoodDB.FoodEntry.COLUMN_ALCOL
-        ,FoodDB.FoodEntry.COLUMN_SALT, FoodDB.FoodEntry.COLUMN_CARBO, FoodDB.FoodEntry.COLUMN_IS_VEGAN)
-        val cursor = database!!.query(
-            FoodDB.FoodEntry.TABLE_NAME,   // The table to query
-            projection,             // The array of columns to return (pass null to get all)
-            null,              // The columns for the WHERE clause
-            null,          // The values for the WHERE clause
-            null,                   // don't group the rows
-            null,                   // don't filter by row groups
-            null               // The sort order
-        )
-        var result = ArrayList<Food>()
-        with(cursor){
-            while(cursor.moveToNext()){
-                val map = HashMap<String, Any>()
-                val name = cursor.getString(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_NAME))
-                val kcal = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_CALORIES))
-                val proteins = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_PROTEIN))
-                val fat = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_FAT))
-                val carbo = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_CARBO))
-                val salt = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_SALT))
-                val alcol = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_ALCOL))
-                val isVegan = cursor.getInt(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_IS_VEGAN))
-                val food = Food(name = name, carbo = carbo, kcal = kcal, protein = proteins, fat = fat
-                , alcol = alcol, salt = salt, isVegan = isVegan.toBoolean())
-                result.add(food)
+        var cursorNullable: Cursor? = null
+        try {
+            val projection = arrayOf(BaseColumns._ID, FoodDB.FoodEntry.COLUMN_NAME, FoodDB.FoodEntry.COLUMN_CALORIES
+                , FoodDB.FoodEntry.COLUMN_PROTEIN, FoodDB.FoodEntry.COLUMN_FAT, FoodDB.FoodEntry.COLUMN_ALCOL
+                ,FoodDB.FoodEntry.COLUMN_SALT, FoodDB.FoodEntry.COLUMN_CARBO, FoodDB.FoodEntry.COLUMN_IS_VEGAN)
+            database?.let {
+                var cursor = it.query(
+                    FoodDB.FoodEntry.TABLE_NAME,   // The table to query
+                    projection,             // The array of columns to return (pass null to get all)
+                    null,              // The columns for the WHERE clause
+                    null,          // The values for the WHERE clause
+                    null,                   // don't group the rows
+                    null,                   // don't filter by row groups
+                    null               // The sort order
+                )
+                cursorNullable = cursor
+                var count = 0
+                while(cursor.moveToNext()){
+                    val name = cursor.getString(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_NAME))
+                    val kcal = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_CALORIES))
+                    val proteins = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_PROTEIN))
+                    val fat = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_FAT))
+                    val carbo = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_CARBO))
+                    val salt = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_SALT))
+                    val alcol = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_ALCOL))
+                    val isVegan = cursor.getInt(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_IS_VEGAN))
+                    val food = Food(name = name, carbo = carbo, kcal = kcal, protein = proteins, fat = fat
+                        , alcol = alcol, salt = salt, isVegan = isVegan.toBoolean())
+                    this.delegates?.forEach{
+                            d -> d.onFoodItemRetrieved(this, food)
+                    }
+                    count+=1
+                }
+                this.delegates?.forEach{
+                        d -> d.onFoodDataRetrievingCompleted(this, count)
+                }
+            }
+        }catch (e: Exception){
+            this.delegates?.forEach{
+                it.errorRaised(this, e)
             }
         }
-        cursor.close()
-        notifyDelegates {
-            delegate -> delegate.foodDataRetrieved(this, result)
+        finally {
+            cursorNullable?.close()
         }
     }
 
@@ -175,8 +211,9 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
         daemonThread.addOperation(call = callOp)
     }
 
-    override fun downloadDataFromInternet() {
-        downloaderThread.triggerDownload(this.remoteFoodDataDownloader)
+    override fun downloadDataFromInternet(deleteDb: Boolean) {
+        val db = if(deleteDb)this else null
+        downloaderThread.triggerDownload(this.remoteFoodDataDownloader, db)
     }
 
 
@@ -187,7 +224,7 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
                 DbUtility.addRow(it, food)
             }
             delegates?.forEach{
-                it.foodAdded(this, food)
+                it.onFoodAddedToDb(this, food)
             }
         }catch (e: Throwable){
             delegates?.forEach{
@@ -200,7 +237,14 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
         TODO("Not yet implemented")
     }
 
-    override fun foodDownloaded(downloader: IRemoteFoodDataDownloader, foods: Collection<Food>) {
+
+
+    override fun onFoodChunckDownloaded(
+        downloader: IRemoteFoodDataDownloader,
+        foods: Collection<Food>,
+        downloaded: Int,
+        target: Int
+    ) {
         val failedFoodStore = mutableSetOf<String>()
         for(food in foods){
             this.database?.let {
@@ -210,7 +254,7 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
                 }
                 else{
                     delegates?.forEach {
-                        it.foodAdded(this, food)
+                        it.onFoodAddedToDb(this, food, downloaded, target)
                     }
                 }
             }
@@ -220,13 +264,33 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
                 it.errorRaised(this, FoodSavingException(failedFoodStore))
             }
         }
-        this.getFoodEntries()
     }
 
     override fun errorRaised(downloader: IRemoteFoodDataDownloader, exception: Throwable) {
+
         delegates?.forEach{
             it.errorRaised(this, exception)
         }
+    }
+
+    override fun addDownloadDelegate(d: IRemoteFoodDataDownloaderDelegate) {
+        this.remoteFoodDataDownloader.addDelegate(d)
+    }
+
+    override fun removeDownloadDelegate(d: IRemoteFoodDataDownloaderDelegate) {
+        this.remoteFoodDataDownloader.removeDelegate(d)
+    }
+
+    override fun onDownloadCompleted(
+        downloader: IRemoteFoodDataDownloader,
+        partially: Boolean,
+        downloadedFood: Int
+    ) {
+
+    }
+
+    override fun onDownloadInterrupted(downloader: IRemoteFoodDataDownloader) {
+
     }
 
 

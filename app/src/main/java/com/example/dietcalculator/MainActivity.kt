@@ -16,6 +16,8 @@ import com.example.dietcalculator.databinding.ActivityMainBinding
 import com.example.dietcalculator.fragments.FoodListFragment
 import com.example.dietcalculator.fragments.SettingsFragment
 import com.example.dietcalculator.fragments.SubstituteCalculatorFragment
+import com.example.dietcalculator.utility.FragmentVisibleDelegate
+import com.example.dietcalculator.utility.add
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
@@ -27,6 +29,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var substituteCalculatorFragment: SubstituteCalculatorFragment
     private lateinit var foodListFragment: FoodListFragment
     private lateinit var settingsFragment: SettingsFragment
+    private val fragmentVisibleDelegates: MutableList<FragmentVisibleDelegate> = mutableListOf()
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,8 +45,16 @@ class MainActivity : AppCompatActivity() {
         dbConnector.connect(this.baseContext)
         foodListFragment = FoodListFragment(connector = dbConnector)
         settingsFragment = SettingsFragment(connector = dbConnector)
-        dbConnector.addDelegate(foodListFragment)
+        fragmentVisibleDelegates.add(substituteCalculatorFragment, foodListFragment, settingsFragment)
         setCurrentFragment(substituteCalculatorFragment)
+    }
+
+    fun addDelegate(d: FragmentVisibleDelegate){
+        this.fragmentVisibleDelegates.add(d)
+    }
+
+    fun removeDelegate(d: FragmentVisibleDelegate){
+        this.fragmentVisibleDelegates.remove(d)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -50,31 +63,34 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    private fun setCurrentFragment(fragment: Fragment)=
+    private fun setCurrentFragment(fragment: Fragment){
+        fragmentVisibleDelegates.forEach{
+            it.onGoingToNewFragment(fragment)
+        }
         supportFragmentManager.beginTransaction().apply {
             replace(R.id.fragmentContainerView, fragment)
             commit()
         }
+    }
 
     // Handling the click events of the menu items
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Switching on the item id of the menu item
+        var newFragment : Fragment= substituteCalculatorFragment
         when (item.itemId) {
             R.id.substitute_tab_button -> {
-                this.setCurrentFragment(substituteCalculatorFragment)
-                return true
+                newFragment = substituteCalculatorFragment
             }
             R.id.settings_tab_button -> {
                 // Code to be executed when the add button is clicked
-                this.setCurrentFragment(settingsFragment)
-                return true
+                newFragment = settingsFragment
             }
             R.id.food_view_tab_button -> {
                 // Code to be executed when the add button is clicked
-                this.setCurrentFragment(foodListFragment)
-                return true
+                newFragment = foodListFragment
             }
         }
+        this.setCurrentFragment(newFragment)
         return true
     }
 
@@ -88,3 +104,4 @@ class MainActivity : AppCompatActivity() {
 
 
 }
+

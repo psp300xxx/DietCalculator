@@ -10,7 +10,9 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Collections
+import java.util.LinkedList
 import java.util.Locale
+import java.util.Queue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -48,8 +50,9 @@ class OpenFoodDataDownloader: IRemoteFoodDataDownloader {
         var currentPage = 1
         var foods = 0
         val foodNames : MutableSet<String> = mutableSetOf()
+        var attempts = 10
         while( foodPages<0 || (currentPage<=foodPages && foods<numberFood )){
-            val nextEndpoint = AppConstants.getFoodFactsEndpoint(country, pageSize, currentPage++)
+            val nextEndpoint = AppConstants.getFoodFactsEndpoint(country, pageSize, currentPage)
             val request = requestBuilder.url(nextEndpoint).get().build()
             try {
                 val response = client.newCall(request).execute()
@@ -59,22 +62,33 @@ class OpenFoodDataDownloader: IRemoteFoodDataDownloader {
                     }
                     break
                 }
-                val chunck = computeFoodChunck(response, foodNames)
+                val jsonObject = JSONObject(response.body()?.string())
+                foodPages = jsonObject.getInt("page_count")
+                val chunck = computeFoodChunck(jsonObject, foodNames)
+                foods += chunck.size
                 this.delegates.forEach{
-                    it.foodDownloaded(this, chunck)
+                    it.onFoodChunckDownloaded(this, chunck, foods,numberFood)
                 }
-                foods+=chunck.size
+                currentPage++
             }catch (e: Throwable){
                 this.delegates.forEach{
                     it.errorRaised(this, e)
                 }
-                break
+                attempts-=1
+                if(attempts<=0){
+                    this.delegates.forEach{
+                        it.onDownloadInterrupted(this)
+                    }
+                }
             }
+        }
+        this.delegates.forEach {
+            it.onDownloadCompleted(this, foods>=numberFood, foods)
         }
     }
 
-    private fun computeFoodChunck(response: Response, foodNames: MutableSet<String>): Collection<Food>{
-        val jsonObj = JSONObject(response.body()?.string())
+    private fun computeFoodChunck(response: JSONObject, foodNames: MutableSet<String>): Collection<Food>{
+        val jsonObj = response
         val jsonArray = jsonObj.getJSONArray("products")
         if(jsonArray.length()==0){
             return Collections.emptyList()
@@ -94,16 +108,17 @@ class OpenFoodDataDownloader: IRemoteFoodDataDownloader {
                 val fat = if(nutriments.has("fat_100g")) nutriments.getInt("fat_100g") else 0
                 val proteins = if(nutriments.has("proteins_100g")) nutriments.getInt("proteins_100g") else 0
                 val salt = if(nutriments.has("salt_100g")) nutriments.getDouble("salt_100g") else 0.0
-                val isVegan = getVegan(currentProduct.getJSONArray("ingredients_analysis_tags"))
+                val isVegan = if (currentProduct.has("ingredients_analysis_tags")) getVegan(currentProduct.getJSONArray("ingredients_analysis_tags")) else true
                 val food = Food(name = productName, kcal=kcal.toDouble(), protein = proteins.toDouble(), fat=fat.toDouble(), carbo=carbo.toDouble(), alcol=alcol.toDouble(), salt=salt, isVegan=isVegan)
                 foodNames.add(productName)
                 result.add(food)
             }catch (e: Exception){
-                Log.w(AppConstants.APP_LOG_TAG, e)
+                Log.w(AppConstants.APP_LOG_TAG, "Error on parsing the following:'${jsonArray.getJSONObject(index).toString(4)}'", e)
             }
         }
         return result
     }
+
 
     private fun getVegan(keywordsArray: JSONArray): Boolean{
         val target = ":vegan"
@@ -119,6 +134,10 @@ class OpenFoodDataDownloader: IRemoteFoodDataDownloader {
 
     override fun addDelegate(delegate: IRemoteFoodDataDownloaderDelegate) {
         this.delegates.add(delegate)
+    }
+
+    override fun removeDelegate(delegate: IRemoteFoodDataDownloaderDelegate) {
+        this.delegates.remove(delegate)
     }
 }
 

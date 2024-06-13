@@ -30,5 +30,15 @@ object Query {
         return String.format(SQL_DELETE_TABLE_TEMPLATE, tableName)
     }
 
+    fun getCreateTableQuery(tableName: String): String {
+        when(tableName){
+            FoodDB.FoodEntry.TABLE_NAME ->
+                return SQL_CREATE_FOOD_TABLE
+            FoodRelation.FoodRelationEntry.TABLE_NAME ->
+                return SQL_CREATE_FOOD_RELATION_TABLE
+        }
+        throw IllegalArgumentException("'${tableName}' is not a table")
+    }
+
 
 }

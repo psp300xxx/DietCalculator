@@ -3,6 +3,7 @@ package com.example.dietcalculator.dao.mockconnector
 import android.content.Context
 import com.example.dietcalculator.dao.IDatabaseConnector
 import com.example.dietcalculator.dao.IDatabaseDelegate
+import com.example.dietcalculator.dao.fooddatadownloader.IRemoteFoodDataDownloaderDelegate
 import com.example.dietcalculator.model.Food
 import com.example.dietcalculator.model.FoodRelation
 import java.util.Collections
@@ -28,13 +29,17 @@ class MockConnector: IDatabaseConnector {
     fun createFoods(number: Int){
         for ( i in 0..number-1 ){
             val foodName = String.format("food%d", i)
+            val food = Food(name = foodName, 20.0,0.0,0.0,0.0,0.0,0.0)
             this.foods.add(
-                Food(name = foodName, 20.0,0.0,0.0,0.0,0.0,0.0)
+                food
             )
+            this.delegates.forEach {
+                it.onFoodAddedToDb(this, food)
+            }
         }
         this.delegates.forEach{
                 d ->
-            d.foodDataRetrieved(this, this.foods)
+            d.onFoodDataRetrievingCompleted(this, number)
         }
     }
 
@@ -50,9 +55,15 @@ class MockConnector: IDatabaseConnector {
     }
 
     override fun getFoodEntries() {
+        for (food in this.foods){
+            this.delegates.forEach{
+                    d ->
+                d.onFoodItemRetrieved(this, food)
+            }
+        }
         this.delegates.forEach{
             d ->
-            d.foodDataRetrieved(this, foods)
+            d.onFoodDataRetrievingCompleted(this, this.foods.size)
         }
     }
 
@@ -60,12 +71,21 @@ class MockConnector: IDatabaseConnector {
         this.foods.add(food)
         this.delegates.forEach{
             d ->
-            d.foodAdded(this, food)
+            d.onFoodAddedToDb(this, food)
         }
     }
 
-    override fun downloadDataFromInternet() {
+    override fun downloadDataFromInternet(deleteDb: Boolean) {
+        TODO("Not yet implemented")
+    }
 
+
+    override fun addDownloadDelegate(d: IRemoteFoodDataDownloaderDelegate) {
+        TODO("Not yet implemented")
+    }
+
+    override fun removeDownloadDelegate(d: IRemoteFoodDataDownloaderDelegate) {
+        TODO("Not yet implemented")
     }
 
     override fun addFoodRelation(foodRelation: FoodRelation) {
@@ -76,14 +96,19 @@ class MockConnector: IDatabaseConnector {
         }
     }
 
-    override fun deleteDatabase() {
+    override fun deleteDatabase(parallelize: Boolean) {
         this.foods.clear()
         this.foodRelations.clear()
         this.delegates.forEach{
-            d ->
+                d ->
             d.dbDeleted(this)
         }
     }
+
+    override fun recreateDb(parallelize: Boolean) {
+        TODO("Not yet implemented")
+    }
+
 
     fun foodNumber(): Int {
         return this.foods.size
@@ -94,7 +119,7 @@ class MockConnector: IDatabaseConnector {
         this.foodRelations.clear()
         this.delegates.forEach{
                 d ->
-            d.foodDataRetrieved(this, this.foods)
+            d.onDBRecreated(this)
         }
     }
 

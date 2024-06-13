@@ -34,8 +34,10 @@ object DbUtility {
         }
     }
 
-    fun createDatabase(context: Context){
-
+    fun createDatabase(database: SQLiteDatabase){
+        for(table in TABLE_NAMES){
+            database.execSQL( Query.getCreateTableQuery(table) )
+        }
     }
 
 }

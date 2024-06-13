@@ -7,16 +7,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Switch
 import android.widget.Toast
+import com.example.dietcalculator.MainActivity
 import com.example.dietcalculator.R
 import com.example.dietcalculator.controller.ISubstitutionCalculator
 import com.example.dietcalculator.controller.IsocaloricCalculator
 import com.example.dietcalculator.controller.SubstituteCalculatorImpl
 import com.example.dietcalculator.databinding.FragmentFirstBinding
+import com.example.dietcalculator.utility.FragmentVisibleDelegate
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
-class SubstituteCalculatorFragment : Fragment() {
+class SubstituteCalculatorFragment : Fragment(), FragmentVisibleDelegate {
 
     private var _binding: FragmentFirstBinding? = null
     private var calculator: ISubstitutionCalculator = SubstituteCalculatorImpl
@@ -41,6 +43,10 @@ class SubstituteCalculatorFragment : Fragment() {
             this.calculator = newCalculator
         }
         return binding.root
+    }
+
+    override fun onGoingToNewFragment(fragment: Fragment) {
+
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

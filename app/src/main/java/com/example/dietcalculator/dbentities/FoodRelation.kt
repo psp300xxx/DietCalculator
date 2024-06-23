@@ -1,6 +1,7 @@
 package com.example.dietcalculator.dbentities
 
 import android.provider.BaseColumns
+import com.example.dietcalculator.model.FoodRelation
 
 class FoodRelation {
     object FoodRelationEntry : BaseColumns {
@@ -9,4 +10,6 @@ class FoodRelation {
         const val COLUMN_FOOD_TWO = "food_two"
         const val COLUMN_RATIO = "ratio"
     }
+
+
 }

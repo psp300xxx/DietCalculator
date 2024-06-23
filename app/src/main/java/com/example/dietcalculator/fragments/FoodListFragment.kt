@@ -12,12 +12,11 @@ import android.widget.SearchView
 import android.widget.Toast
 import android.widget.ViewSwitcher
 import androidx.core.view.iterator
-import com.example.dietcalculator.MainActivity
 import com.example.dietcalculator.R
 import com.example.dietcalculator.dao.IDatabaseConnector
 import com.example.dietcalculator.dao.IDatabaseDelegate
-import com.example.dietcalculator.dao.mockconnector.MockConnector
 import com.example.dietcalculator.databinding.FoodListFragmentBinding
+import com.example.dietcalculator.dbentities.DbEntity
 import com.example.dietcalculator.model.Food
 import com.example.dietcalculator.model.FoodRelation
 import com.example.dietcalculator.utility.AppConstants
@@ -25,7 +24,6 @@ import com.example.dietcalculator.utility.FragmentVisibleDelegate
 import com.example.dietcalculator.utility.Utility
 import org.json.JSONArray
 import java.util.function.Predicate
-import kotlin.random.Random
 
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
@@ -112,7 +110,7 @@ class FoodListFragment(private val connector: IDatabaseConnector) : Fragment(), 
             }
             this.foodAdapter.notifyDataSetChanged()
         }
-        this.foodAdapter = FoodAdapter(this.requireContext(), this.foodFilter, this.activity?.parent)
+        this.foodAdapter = FoodAdapter(this.requireContext(), this.foodFilter, this)
         this.foodAdapter.addDelegate(this)
         this.binding.foodListView.adapter = foodAdapter
         this.foodFilter.addNameCondition(stringCondition)
@@ -169,13 +167,27 @@ class FoodListFragment(private val connector: IDatabaseConnector) : Fragment(), 
 
     }
 
-    override fun onFoodDataRetrievingCompleted(connector: IDatabaseConnector, number: Int) {
-        this.activity?.runOnUiThread{
-            this.foodAdapter.notifyDataSetChanged()
+    override fun onItemsRetrieved(
+        connector: IDatabaseConnector,
+        type: Class<out DbEntity>,
+        count: Int
+    ) {
+        if(type == Food::class.java){
+            this.activity?.runOnUiThread{
+                this.foodAdapter.notifyDataSetChanged()
+            }
         }
     }
 
-    override fun onFoodItemRetrieved(connector: IDatabaseConnector, food: Food) {
+
+
+
+    override fun onItemRetrieved(
+        connector: IDatabaseConnector,
+        item: DbEntity,
+        downloaded: Int?,
+        toDownload: Int?
+    ) {
 
     }
 
@@ -185,39 +197,21 @@ class FoodListFragment(private val connector: IDatabaseConnector) : Fragment(), 
         this.binding.placeholderView.showView(view, this.activity)
     }
 
-    override fun onFoodAddedToDb(
+
+    override fun onItemAddedToDb(
         connector: IDatabaseConnector,
-        food: Food,
+        item: DbEntity,
         downloaded: Int?,
         toDownload: Int?
     ) {
 
     }
+
     override fun dbDeleted(connector: IDatabaseConnector) {
         this.binding.placeholderView.showView(R.id.no_food_text_view, this.activity)
     }
 
     override fun onDBRecreated(connector: IDatabaseConnector) {
-        TODO("Not yet implemented")
-    }
-
-    override fun foodRelationAdded(connector: IDatabaseConnector, foodRelation: FoodRelation) {
-        TODO("Not yet implemented")
-    }
-
-    override fun allFoodRelationsRetrieved(
-        connector: IDatabaseConnector,
-        relations: List<FoodRelation>
-    ) {
-        TODO("Not yet implemented")
-    }
-
-
-    override fun filteredFoodRelationsRetrieved(
-        connector: IDatabaseConnector,
-        relations: List<FoodRelation>,
-        foods: List<Food>
-    ) {
         TODO("Not yet implemented")
     }
 

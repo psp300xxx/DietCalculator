@@ -3,31 +3,20 @@ package com.example.dietcalculator.dao.sqliteconnector
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
-import android.provider.BaseColumns
 import com.example.dietcalculator.dao.IDatabaseConnector
 import com.example.dietcalculator.dao.IDatabaseDelegate
 import com.example.dietcalculator.dao.fooddatadownloader.IRemoteFoodDataDownloader
 import com.example.dietcalculator.dao.fooddatadownloader.IRemoteFoodDataDownloaderDelegate
 import com.example.dietcalculator.dao.fooddatadownloader.OpenFoodDataDownloader
+import com.example.dietcalculator.dbentities.DbEntity
 import com.example.dietcalculator.dbentities.DbUtility
 import com.example.dietcalculator.dbentities.FoodDB
 import com.example.dietcalculator.dbentities.FoodReaderDbHelper
 import com.example.dietcalculator.dbentities.FoodSavingException
 import com.example.dietcalculator.model.Food
 import com.example.dietcalculator.model.FoodRelation
-import com.example.dietcalculator.utility.AppConstants
-import com.example.dietcalculator.utility.Utility
-import com.example.dietcalculator.utility.Utility.toBoolean
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import org.json.JSONObject
-import java.io.IOException
-import java.util.Locale
-import java.util.concurrent.locks.ReentrantLock
-import java.util.function.Consumer
+import com.example.dietcalculator.utility.Utility.fromMap
+import com.example.dietcalculator.utility.Utility.getAnyMap
 
 
 class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate {
@@ -154,15 +143,14 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
         daemonThread.addOperation(call = callOp)
     }
 
-    private fun getFoodEntriesPvt() {
+    private fun getItemsFromDb(entityClass: Class<out DbEntity>){
         if (this.database==null){
             return
         }
+        val entity = entityClass.newInstance()
         var cursorNullable: Cursor? = null
         try {
-            val projection = arrayOf(BaseColumns._ID, FoodDB.FoodEntry.COLUMN_NAME, FoodDB.FoodEntry.COLUMN_CALORIES
-                , FoodDB.FoodEntry.COLUMN_PROTEIN, FoodDB.FoodEntry.COLUMN_FAT, FoodDB.FoodEntry.COLUMN_ALCOL
-                ,FoodDB.FoodEntry.COLUMN_SALT, FoodDB.FoodEntry.COLUMN_CARBO, FoodDB.FoodEntry.COLUMN_IS_VEGAN)
+            val projection = entity.getColumns()
             database?.let {
                 var cursor = it.query(
                     FoodDB.FoodEntry.TABLE_NAME,   // The table to query
@@ -176,23 +164,15 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
                 cursorNullable = cursor
                 var count = 0
                 while(cursor.moveToNext()){
-                    val name = cursor.getString(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_NAME))
-                    val kcal = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_CALORIES))
-                    val proteins = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_PROTEIN))
-                    val fat = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_FAT))
-                    val carbo = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_CARBO))
-                    val salt = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_SALT))
-                    val alcol = cursor.getDouble(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_ALCOL))
-                    val isVegan = cursor.getInt(cursor.getColumnIndexOrThrow(FoodDB.FoodEntry.COLUMN_IS_VEGAN))
-                    val food = Food(name = name, carbo = carbo, kcal = kcal, protein = proteins, fat = fat
-                        , alcol = alcol, salt = salt, isVegan = isVegan.toBoolean())
+                    val map = cursor.getAnyMap(projection)
+                    val item = fromMap(map, entity.javaClass)
                     this.delegates?.forEach{
-                            d -> d.onFoodItemRetrieved(this, food)
+                            d -> d.onItemRetrieved(this, item)
                     }
                     count+=1
                 }
                 this.delegates?.forEach{
-                        d -> d.onFoodDataRetrievingCompleted(this, count)
+                        d -> d.onItemsRetrieved(this, entityClass,count)
                 }
             }
         }catch (e: Exception){
@@ -205,8 +185,12 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
         }
     }
 
+    private fun getFoodEntriesPvt() {
+        getItemsFromDb(Food::class.java)
+    }
+
     override fun addFood(food: Food) {
-        val method = this.javaClass.getMethod("addFoodPvt", *arrayOf( food::class.java ) )
+        val method = this.javaClass.getMethod("addItemPvt", *arrayOf( food::class.java ) )
         val callOp = MethodCall(method, arrayOf(food as Object), this)
         daemonThread.addOperation(call = callOp)
     }
@@ -217,14 +201,14 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
     }
 
 
-    fun addFoodPvt(food: Food) {
+    fun addItemPvt(item: DbEntity){
         var exception: Throwable? = null
         try{
             this.database?.let {
-                DbUtility.addRow(it, food)
+                DbUtility.addRow(it, item)
             }
             delegates?.forEach{
-                it.onFoodAddedToDb(this, food)
+                it.onItemAddedToDb(this, item)
             }
         }catch (e: Throwable){
             delegates?.forEach{
@@ -254,7 +238,7 @@ class SQLLiteConnector() : IDatabaseConnector, IRemoteFoodDataDownloaderDelegate
                 }
                 else{
                     delegates?.forEach {
-                        it.onFoodAddedToDb(this, food, downloaded, target)
+                        it.onItemAddedToDb(this, food, downloaded, target)
                     }
                 }
             }

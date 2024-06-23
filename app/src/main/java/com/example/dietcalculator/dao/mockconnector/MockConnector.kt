@@ -34,12 +34,12 @@ class MockConnector: IDatabaseConnector {
                 food
             )
             this.delegates.forEach {
-                it.onFoodAddedToDb(this, food)
+                it.onItemAddedToDb(this, food)
             }
         }
         this.delegates.forEach{
                 d ->
-            d.onFoodDataRetrievingCompleted(this, number)
+            d.onItemsRetrieved(this, Food::class.java,number)
         }
     }
 
@@ -58,12 +58,12 @@ class MockConnector: IDatabaseConnector {
         for (food in this.foods){
             this.delegates.forEach{
                     d ->
-                d.onFoodItemRetrieved(this, food)
+                d.onItemRetrieved(this, food)
             }
         }
         this.delegates.forEach{
             d ->
-            d.onFoodDataRetrievingCompleted(this, this.foods.size)
+            d.onItemsRetrieved(this, Food::class.java,this.foods.size)
         }
     }
 
@@ -71,7 +71,7 @@ class MockConnector: IDatabaseConnector {
         this.foods.add(food)
         this.delegates.forEach{
             d ->
-            d.onFoodAddedToDb(this, food)
+            d.onItemAddedToDb(this, food)
         }
     }
 
@@ -92,7 +92,7 @@ class MockConnector: IDatabaseConnector {
         this.foodRelations.add(foodRelation)
         this.delegates.forEach{
             d ->
-            d.foodRelationAdded(this, foodRelation)
+            d.onItemAddedToDb(this, foodRelation)
         }
     }
 
@@ -137,7 +137,7 @@ class MockConnector: IDatabaseConnector {
         }
         this.delegates.forEach{
             d ->
-            d.filteredFoodRelationsRetrieved(this, filtered, list)
+            d.onItemsRetrieved(this, Food::class.java,filtered.size)
         }
     }
 
@@ -149,10 +149,10 @@ class MockConnector: IDatabaseConnector {
     }
 
     override fun getRelationEntriesIDinputs(list: List<Int>) {
-        this.delegates.forEach{
-                d ->
-            d.allFoodRelationsRetrieved(this, Collections.unmodifiableList(this.foodRelations))
+        val foods = list.map { i ->
+            this.foods[i]
         }
+        getRelationEntriesFoodInput(foods)
     }
 
 }

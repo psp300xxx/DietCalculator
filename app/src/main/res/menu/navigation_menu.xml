@@ -12,6 +12,11 @@
         android:layout_height="match_parent"
         android:title="@string/menu_food_view" />
     <item
+        android:id="@+id/dietcalendar_tab_button"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:title="@string/calendar_str" />
+    <item
         android:id="@+id/settings_tab_button"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

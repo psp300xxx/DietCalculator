@@ -13,6 +13,7 @@ import com.example.dietcalculator.dao.IDatabaseConnector
 import com.example.dietcalculator.dao.mockconnector.MockConnector
 import com.example.dietcalculator.dao.sqliteconnector.SQLLiteConnector
 import com.example.dietcalculator.databinding.ActivityMainBinding
+import com.example.dietcalculator.fragments.CalendarFragment
 import com.example.dietcalculator.fragments.FoodListFragment
 import com.example.dietcalculator.fragments.SettingsFragment
 import com.example.dietcalculator.fragments.SubstituteCalculatorFragment
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var substituteCalculatorFragment: SubstituteCalculatorFragment
     private lateinit var foodListFragment: FoodListFragment
     private lateinit var settingsFragment: SettingsFragment
+    private lateinit var calendarFragment: CalendarFragment
     private val fragmentVisibleDelegates: MutableList<FragmentVisibleDelegate> = mutableListOf()
 
 
@@ -45,7 +47,8 @@ class MainActivity : AppCompatActivity() {
         dbConnector.connect(this.baseContext)
         foodListFragment = FoodListFragment(connector = dbConnector)
         settingsFragment = SettingsFragment(connector = dbConnector)
-        fragmentVisibleDelegates.add(substituteCalculatorFragment, foodListFragment, settingsFragment)
+        calendarFragment = CalendarFragment()
+        fragmentVisibleDelegates.add(substituteCalculatorFragment, foodListFragment, settingsFragment, calendarFragment)
         setCurrentFragment(substituteCalculatorFragment)
     }
 
@@ -88,6 +91,10 @@ class MainActivity : AppCompatActivity() {
             R.id.food_view_tab_button -> {
                 // Code to be executed when the add button is clicked
                 newFragment = foodListFragment
+            }
+            R.id.dietcalendar_tab_button -> {
+                // Code to be executed when the add button is clicked
+                newFragment = calendarFragment
             }
         }
         this.setCurrentFragment(newFragment)

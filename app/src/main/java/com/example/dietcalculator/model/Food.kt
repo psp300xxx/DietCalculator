@@ -3,41 +3,43 @@ package com.example.dietcalculator.model
 import com.example.dietcalculator.dbentities.DbEntity
 import com.example.dietcalculator.dbentities.FoodDB
 
-class Food: DbEntity {
+class Food(): DbEntity {
+
 
     @DBValue(columnName = FoodDB.FoodEntry.COLUMN_NAME)
-    var name: String
+    var name: String = ""
         public get
 
     @DBValue(columnName=FoodDB.FoodEntry.COLUMN_CALORIES)
-    var kcal: Double
+    var kcal: Double = 0.0
         public get
 
     @DBValue(columnName=FoodDB.FoodEntry.COLUMN_PROTEIN)
-    var protein: Double
+    var protein: Double = 0.0
         public get
 
     @DBValue(columnName=FoodDB.FoodEntry.COLUMN_FAT)
-    var fat: Double
+    var fat: Double = 0.0
         public get
 
     @DBValue(columnName=FoodDB.FoodEntry.COLUMN_CARBO)
-    var carbo: Double
+    var carbo: Double = 0.0
         public get
 
     @DBValue(columnName=FoodDB.FoodEntry.COLUMN_ALCOL)
-    var alcol: Double
+    var alcol: Double = 0.0
         public get
 
     @DBValue(columnName=FoodDB.FoodEntry.COLUMN_SALT)
-    var salt: Double
+    var salt: Double = 0.0
         public get
 
     @DBValue(columnName=FoodDB.FoodEntry.COLUMN_IS_VEGAN)
-    var isVegan: Boolean
+    var isVegan: Boolean = false
         public get
 
-    constructor(name: String, kcal: Double, protein: Double, fat: Double, carbo: Double, alcol: Double, salt: Double){
+
+    constructor(name: String, kcal: Double, protein: Double, fat: Double, carbo: Double, alcol: Double, salt: Double): this(){
         this.alcol = alcol
         this.salt = salt
         this.carbo = carbo
@@ -48,6 +50,8 @@ class Food: DbEntity {
         this.isVegan = false
     }
 
+
+
     constructor(name: String, kcal: Double, protein: Double, fat: Double, carbo: Double, alcol: Double, salt: Double, isVegan:Boolean): this(name, kcal, protein, fat, carbo, alcol, salt){
         this.isVegan = isVegan
     }
@@ -56,9 +60,14 @@ class Food: DbEntity {
         return "Food(name='$name', kcal=$kcal, protein=$protein, fat=$fat, carbo=$carbo, alcol=$alcol, salt=$salt)"
     }
 
+
     override fun tableName(): String {
         return FoodDB.FoodEntry.TABLE_NAME
     }
+
+
+
+
 
 
 }

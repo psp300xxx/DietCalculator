@@ -2,7 +2,31 @@ package com.example.dietcalculator.model
 
 import com.example.dietcalculator.dbentities.DbEntity
 
-class FoodRelation(val foodOne: String, val foodTwo: String, val ratio: Double): DbEntity {
+class FoodRelation(): DbEntity {
+
+    @DBValue(columnName = com.example.dietcalculator.dbentities.FoodRelation.FoodRelationEntry.COLUMN_FOOD_ONE)
+    private var _foodOne: String = ""
+
+    val foodOne: String
+        get() = _foodOne
+
+    @DBValue(columnName = com.example.dietcalculator.dbentities.FoodRelation.FoodRelationEntry.COLUMN_FOOD_TWO)
+    private var _foodTwo: String = ""
+
+    val foodTwo: String
+        get() = _foodTwo
+
+    @DBValue(columnName = com.example.dietcalculator.dbentities.FoodRelation.FoodRelationEntry.COLUMN_RATIO)
+    private var _ratio: Double = 0.0
+
+    val ratio: Double
+        get() = _ratio
+
+    constructor(foodOne: String, foodTwo: String, ratio: Double): this() {
+        this._foodOne = foodOne
+        this._foodTwo = foodTwo
+        this._ratio = ratio
+    }
 
     private var oppositeRelation: FoodRelation? = null
 

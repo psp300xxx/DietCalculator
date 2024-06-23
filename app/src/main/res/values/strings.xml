@@ -14,6 +14,7 @@
     <string name="downloading_msg">Downloading data...</string>
     <string name="downloading_data_text">Download Data</string>
     <string name="download_complete_text">Download Completed</string>
+    <string name="calendar_str">Calendar</string>
     <string name="download_partially_text">Download Partially Completed</string>
     <string name="downloading_data_text_button">Download</string>
     <string name="menu_navigation">Navigation</string>
@@ -27,5 +28,7 @@
     <string name="is_protein_str">Is Protein Food</string>
 
     <string name="lorem_ipsum">meme\n</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

@@ -1,10 +1,8 @@
 package com.example.dietcalculator.dbentities
 
 import android.content.ContentValues
-import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import com.example.dietcalculator.model.DBValue
-import com.example.dietcalculator.model.Food
 import com.example.dietcalculator.utility.Utility.toInt
 
 object DbUtility {

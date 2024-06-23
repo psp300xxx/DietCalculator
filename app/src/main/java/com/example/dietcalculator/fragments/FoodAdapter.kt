@@ -7,33 +7,49 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import com.example.dietcalculator.R
 import com.example.dietcalculator.dao.IDatabaseConnector
 import com.example.dietcalculator.dao.IDatabaseDelegate
+import com.example.dietcalculator.dbentities.DbEntity
 import com.example.dietcalculator.model.Food
 import com.example.dietcalculator.model.FoodRelation
 import java.util.concurrent.locks.ReentrantLock
 
-class FoodAdapter(private val context: Context, private val filter: FoodFilter, private val activity: Activity?): BaseAdapter(), IDatabaseDelegate {
+class FoodAdapter(private val context: Context, private val filter: FoodFilter, private val fragment: Fragment?): BaseAdapter(), IDatabaseDelegate {
     private val delegates: MutableList<FoodAdapterListener> = mutableListOf()
-    private val list: MutableList<Food> = mutableListOf()
+    private var list: MutableList<Food> = mutableListOf()
     private var hasShowable: Boolean? = null
+    private val lock = ReentrantLock()
+
+    private val activity: Activity?
+        get() = this.fragment?.activity
 
     companion object {
         val MAX_SHOWABLE = 100
     }
 
     fun addFood(food: Food){
-        var list = this.list
-        this.activity?.runOnUiThread{
-            list.run { add(food) }
+        lock.lock()
+        try {
+            this.activity?.runOnUiThread{
+                this.list.add(food)
+                this.notifyDataSetChanged()
+            }
+        }finally {
+            lock.unlock()
         }
     }
 
     fun clearList(){
-        var list = this.list
-        this.activity?.runOnUiThread{
-            this.list.clear()
+        lock.lock()
+        try {
+            this.activity?.runOnUiThread{
+                this.list.clear()
+                this.notifyDataSetChanged()
+            }
+        }finally {
+            lock.unlock()
         }
     }
 
@@ -108,20 +124,37 @@ class FoodAdapter(private val context: Context, private val filter: FoodFilter, 
 
     }
 
-    override fun onFoodDataRetrievingCompleted(connector: IDatabaseConnector, number: Int) {
-
-    }
-
-    override fun onFoodItemRetrieved(connector: IDatabaseConnector, food: Food) {
-        this.addFood(food)
-    }
-
-    override fun onFoodAddedToDb(
+    override fun onItemsRetrieved(
         connector: IDatabaseConnector,
-        food: Food,
+        type: Class<out DbEntity>,
+        count: Int
+    ) {
+
+    }
+
+
+
+
+    override fun onItemRetrieved(
+        connector: IDatabaseConnector,
+        item: DbEntity,
         downloaded: Int?,
         toDownload: Int?
     ) {
+        if (item is Food){
+            this.addFood(item)
+        }
+    }
+
+
+
+    override fun onItemAddedToDb(
+        connector: IDatabaseConnector,
+        item: DbEntity,
+        downloaded: Int?,
+        toDownload: Int?
+    ) {
+        TODO("Not yet implemented")
     }
 
     override fun dbDeleted(connector: IDatabaseConnector) {
@@ -132,27 +165,15 @@ class FoodAdapter(private val context: Context, private val filter: FoodFilter, 
 
     }
 
-    override fun foodRelationAdded(connector: IDatabaseConnector, foodRelation: FoodRelation) {
 
-    }
 
-    override fun allFoodRelationsRetrieved(
-        connector: IDatabaseConnector,
-        relations: List<FoodRelation>
-    ) {
-
-    }
-
-    override fun filteredFoodRelationsRetrieved(
-        connector: IDatabaseConnector,
-        relations: List<FoodRelation>,
-        foods: List<Food>
-    ) {
-
-    }
 
     override fun errorRaised(connector: IDatabaseConnector, exception: Throwable) {
-
+        this.fragment?.let {
+            if( fragment is FoodListFragment ){
+                fragment.errorRaised(connector, exception)
+            }
+        }
     }
 }
 

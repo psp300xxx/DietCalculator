@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="WeekCalendarView">
+        <attr name="selectedDay" format="enum" >
+            <enum name="monday" value="0"/>
+            <enum name="tuesday" value="1"/>
+            <enum name="wednesday" value="2"/>
+            <enum name="thursday" value="3"/>
+            <enum name="friday" value="4"/>
+            <enum name="saturday" value="5"/>
+            <enum name="sunday" value="6"/>
+        </attr>
+        <attr name="labelPosition" format="enum">
+            <enum name="left" value="0"/>
+            <enum name="right" value="1"/>
+        </attr>
+        <attr name="weekStart" format="enum">
+            <enum name="monday" value="0"/>
+            <enum name="sunday" value="6"/>
+        </attr>
+        <attr name="dayDivision" format="integer"/>
+    </declare-styleable>
+</resources>

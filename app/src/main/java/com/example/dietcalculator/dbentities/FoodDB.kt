@@ -1,8 +1,9 @@
 package com.example.dietcalculator.dbentities
 
 import android.provider.BaseColumns
+import com.example.dietcalculator.model.Food
 
-object FoodDB {
+object FoodDB  {
     object FoodEntry : BaseColumns {
         const val TABLE_NAME = "Food"
         const val COLUMN_NAME = "name"
@@ -14,4 +15,7 @@ object FoodDB {
         const val COLUMN_SALT = "salt"
         const val COLUMN_IS_VEGAN = "is_vegan"
     }
+
+
+
 }
